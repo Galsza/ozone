@@ -44,6 +44,8 @@ for scheme in o3fs ofs; do
   execute_robot_test rm -v "SCHEME:${scheme}" -N "mapreduce-${scheme}" mapreduce.robot
 done
 
+execute_robot_test rm security/ozone-secure-cert-rotation.robot
+
 stop_docker_env
 
 generate_report
