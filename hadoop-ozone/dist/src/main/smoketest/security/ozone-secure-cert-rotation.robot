@@ -16,7 +16,7 @@ Library             OperatingSystem
 Library             String
 Library             BuiltIn
 Resource            ../commonlib.robot
-Resource            lib/fs.robot
+Resource            ../lib/fs.robot
 Test Timeout        5 minutes
 
 *** Variables ***
