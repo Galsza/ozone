@@ -38,10 +38,10 @@ Certificate rotation test
     ${validatedir} =    Format FS URL    ${SCHEME}    ${volume}    ${bucket}   validate/
 
                         #generate 100 megabytes of input for terasort
-                        Execute                hadoop jar ${exampleJar} teragen`expr 1024 \* 1024 \* 100` ${inputdir}
-                        Execute                hadoop jar ${exampleJar} terasort `expr 1024 \* 1024 \* 100` ${inputdir} ${outputdir}
-                        Exucute                hadoop jar ${exampleJar} teravalidate ${outputdir} ${validatedir}
-    ${problems} =       Count Items In Directory    ${validatedir}
-                        Should Be Equal As Integers    ${problems}    0
+                        Execute                         hadoop jar ${exampleJar} teragen `expr 1024 \* 1024 \* 100` ${inputdir}
+                        Execute                         hadoop jar ${exampleJar} terasort `expr 1024 \* 1024 \* 100` ${inputdir} ${outputdir}
+                        Exucute                         hadoop jar ${exampleJar} teravalidate ${outputdir} ${validatedir}
+    ${problems} =       Count Items In Directory        ${validatedir}
+                        Should Be Equal As Integers     ${problems}    0
 
 
