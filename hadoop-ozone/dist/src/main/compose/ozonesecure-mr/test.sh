@@ -38,7 +38,6 @@ export OZONE_DIR=/opt/ozone
 source "$COMPOSE_DIR/../testlib.sh"
 
 execute_robot_test rm kinit-hadoop.robot
-execute_robot_test rm security/ozone-secure-cert-rotation.robot
 
 for scheme in o3fs ofs; do
   execute_robot_test rm -v "SCHEME:${scheme}" -N "hadoopfs-${scheme}" ozonefs/hadoopo3fs.robot

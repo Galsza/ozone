@@ -49,3 +49,18 @@ Execute WordCount
     ${output} =     Execute          yarn jar ${exampleJar} wordcount -D fs.defaultFS=${root} ${dir} ${result}
                     Should Contain   ${output}               map tasks=3
                     Should Contain   ${output}               completed successfully
+
+
+Certificate rotation test
+                    ${exampleJar}       Find example jar
+                    ${root} =           Format FS URL    ${SCHEME}    ${volume}    ${bucket}
+                    ${inputdir} =       Format FS URL    ${SCHEME}    ${volume}    ${bucket}   input/
+                    ${outputdir} =      Format FS URL    ${SCHEME}    ${volume}    ${bucket}   output/
+                    ${validatedir} =    Format FS URL    ${SCHEME}    ${volume}    ${bucket}   validate/
+
+                        #generate 100 megabytes of input for terasort
+                                         Execute                         hadoop jar ${exampleJar} teragen `expr 1024 \* 1024 \* 100` ${inputdir}
+                                         Execute                         hadoop jar ${exampleJar} terasort ${inputdir} ${outputdir}
+                                         Exucute                         hadoop jar ${exampleJar} teravalidate ${outputdir} ${validatedir}
+                    ${problems} =        Count Items In Directory        ${validatedir}
+                                         Should Be Equal As Integers     ${problems}    0
