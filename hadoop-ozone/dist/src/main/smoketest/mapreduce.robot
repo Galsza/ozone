@@ -61,4 +61,4 @@ Certificate rotation test
                         #generate 100 megabytes of input for terasort
                         Execute                         yarn jar ${exampleJar} teragen -D fs.defaultFS=${root} 10m ${inputdir}
                         Execute                         yarn jar ${exampleJar} terasort -D fs.defaultFS=${root} ${inputdir} ${outputdir}
-                        Exucute                         yarn jar ${exampleJar} teravalidate -D fs.defaultFS=${root} ${outputdir} ${validatedir}
+                        Execute                         yarn jar ${exampleJar} teravalidate -D fs.defaultFS=${root} ${outputdir} ${validatedir}
