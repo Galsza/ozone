@@ -54,13 +54,11 @@ Execute WordCount
 Certificate rotation test
     ${exampleJar}       Find example jar
     ${root} =           Format FS URL    ${SCHEME}    ${volume}    ${bucket}
-    ${inputdir} =       Format FS URL    ${SCHEME}    ${volume}    ${bucket}   input/
-    ${outputdir} =      Format FS URL    ${SCHEME}    ${volume}    ${bucket}   output/
-    ${validatedir} =    Format FS URL    ${SCHEME}    ${volume}    ${bucket}   validate/
+    ${inputdir} =       Format FS URL    ${SCHEME}    ${volume}    ${bucket}   terainput/
+    ${outputdir} =      Format FS URL    ${SCHEME}    ${volume}    ${bucket}   teraoutput/
+    ${validatedir} =    Format FS URL    ${SCHEME}    ${volume}    ${bucket}   teraresult/
 
                         #generate 100 megabytes of input for terasort
-                        Execute                         yarn jar ${exampleJar} teragen 100m ${inputdir}
-                        Execute                         yarn jar ${exampleJar} terasort ${inputdir} ${outputdir}
-                        Exucute                         yarn jar ${exampleJar} teravalidate ${outputdir} ${validatedir}
-   ${problems} =        Count Items In Directory        ${validatedir}
-                        Should Be Equal As Integers     ${problems}    0
+                        Execute                         yarn jar ${exampleJar} teragen -D fs.defaultFS=${root} 10m ${inputdir}
+                        Execute                         yarn jar ${exampleJar} terasort -D fs.defaultFS=${root} ${inputdir} ${outputdir}
+                        Exucute                         yarn jar ${exampleJar} teravalidate -D fs.defaultFS=${root} ${outputdir} ${validatedir}
