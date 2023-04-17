@@ -40,5 +40,5 @@ Certificate rotation test
     ${validatedir} =    Format FS URL    ${SCHEME}    ${volume}    ${bucket}   teraresult/
 
                         #generate 100 megabytes of input for terasort
-                        Execute                         yarn jar ${exampleJar} teragen -D fs.defaultFS=${root} 10m ${inputdir}
+                        Execute                         yarn jar ${exampleJar} teragen -D fs.defaultFS=${root} 100m ${inputdir}
                         Execute                         yarn jar ${exampleJar} terasort -D fs.defaultFS=${root} ${inputdir} ${outputdir}
