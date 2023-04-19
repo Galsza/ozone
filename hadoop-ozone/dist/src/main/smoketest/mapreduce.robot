@@ -32,13 +32,20 @@ Find example jar
                     [return]            ${jar}
 
 *** Test cases ***
-Certificate rotation test
-                        ${exampleJar}    Find example jar
-    ${root} =           Format FS URL    ${SCHEME}    ${volume}    ${bucket}
-    ${inputdir} =       Format FS URL    ${SCHEME}    ${volume}    ${bucket}   terainput/
-    ${outputdir} =      Format FS URL    ${SCHEME}    ${volume}    ${bucket}   teraoutput/
-    ${validatedir} =    Format FS URL    ${SCHEME}    ${volume}    ${bucket}   teraresult/
 
-                        #generate 100 megabytes of input for terasort
-                        Execute                         yarn jar ${exampleJar} teragen -D fs.defaultFS=${root} 100m ${inputdir}
-                        Execute                         yarn jar ${exampleJar} terasort -D fs.defaultFS=${root} ${inputdir} ${outputdir}
+Execute PI calculation
+                    ${exampleJar}    Find example jar
+    ${root} =       Format FS URL    ${SCHEME}    ${volume}    ${bucket}
+                    ${output} =      Execute                 yarn jar ${exampleJar} pi -D fs.defaultFS=${root} 3 3
+                    Should Contain   ${output}               completed successfully
+                    Should Not Contain   ${output}           multiple SLF4J bindings
+
+Execute WordCount
+                    ${exampleJar}    Find example jar
+    ${random} =     Generate Random String
+    ${root} =       Format FS URL    ${SCHEME}    ${volume}    ${bucket}
+    ${dir} =        Format FS URL    ${SCHEME}    ${volume}    ${bucket}   input/
+    ${result} =     Format FS URL    ${SCHEME}    ${volume}    ${bucket}   wordcount-${random}.txt
+    ${output} =     Execute          yarn jar ${exampleJar} wordcount -D fs.defaultFS=${root} ${dir} ${result}
+                    Should Contain   ${output}               map tasks=3
+                    Should Contain   ${output}               completed successfully
