@@ -15,18 +15,24 @@ Documentation       Smoketest ozone cluster startup
 Library             OperatingSystem
 Resource            ../commonlib.robot
 Resource            ../ozone-lib/freon.robot
+Suite Setup         Setup Test
 Test Timeout        5 minutes
 
 *** Keywords ***
-Basic key generation and validation
+Setup Test
     Run Keyword if    '${SECURITY_ENABLED}' == 'true'    Kinit test user     testuser     testuser.keytab
-    ${random} =        Generate Random String    10
+
+Test put operation after certificate rotation
+    Basic key generation and validation
+    Sleep	       30s
+    Basic key generation and validation
+
+Basic key generation and validation
+    ${random} =   Generate Random String    10
     Freon OCKG    prefix=${random}
     Freon OCKV    prefix=${random}
 
 *** Test Cases ***
 Certificate rotation test
-    Basic key generation and validation
-    sleep 30s
-    Basic key generation and validation
+    Test put operation after certificate rotation
 
