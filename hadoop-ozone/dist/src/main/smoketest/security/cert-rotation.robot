@@ -24,13 +24,19 @@ Setup Test
 
 Test put operation after certificate rotation
     Basic key generation and validation
-    Sleep	       30s
+    ${sleepTime} =    Find wait time
+    Sleep	       ${sleepTime}
     Basic key generation and validation
 
 Basic key generation and validation
     ${random} =   Generate Random String    10
     Freon OCKG    prefix=${random}
     Freon OCKV    prefix=${random}
+
+Find wait time
+    ${waitTime} =     Execute       printenv | grep hdds.x509.default.duration | sed 's/OZONE-SITE.XML_hdds.x509.default.duration=//' | sed 's/PT//'
+    ${waitTime} =       Set Variable if    "${waitTime}" != "${EMPTY}"      ${waitTime}    0s
+    [return]            ${waitTime}
 
 *** Test Cases ***
 Certificate rotation test
