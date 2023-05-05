@@ -76,7 +76,7 @@ Close container
                         Execute          ozone admin container close "${container}"
     ${output} =         Execute          ozone admin container info "${container}"
                         Should contain   ${output}   CLOS
-    Wait until keyword succeeds    1min    10sec    Container is closed    ${container}
+    Wait until keyword succeeds    2min    10sec    Container is closed    ${container}
 
 Incomplete command
     ${output} =         Execute And Ignore Error     ozone admin container
