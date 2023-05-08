@@ -35,7 +35,7 @@ execute_command_in_container kms hadoop key create ${OZONE_BUCKET_KEY_NAME}
 
 execute_robot_test s3g kinit.robot
 
-execute_robot_test s3g security -v datanode:datanode1
+execute_robot_test s3g -v datanode:datanode1 security
 
 execute_robot_test s3g freon
 
