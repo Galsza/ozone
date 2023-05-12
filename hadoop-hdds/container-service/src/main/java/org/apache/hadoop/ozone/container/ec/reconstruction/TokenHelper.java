@@ -75,8 +75,8 @@ class TokenHelper {
                   HddsConfigKeys.HDDS_X509_RENEW_GRACE_DURATION_DEFAULT))
           .toMillis();
       boolean tokenSanityChecksEnabled = conf.getBoolean(
-          HddsConfigKeys.HDDS_X509_GRACE_DURATION_TOKEN_CHECKS,
-          HddsConfigKeys.HDDS_X509_GRACE_DURATION_TOKEN_CHECKS_DEFAULT);
+          HddsConfigKeys.HDDS_X509_GRACE_DURATION_TOKEN_CHECKS_ENABLED,
+          HddsConfigKeys.HDDS_X509_GRACE_DURATION_TOKEN_CHECKS_ENABLED_DEFAULT);
       if (tokenSanityChecksEnabled && expiryTime > certificateGracePeriod) {
         throw new IllegalArgumentException("Certificate grace period " +
             HddsConfigKeys.HDDS_X509_RENEW_GRACE_DURATION +

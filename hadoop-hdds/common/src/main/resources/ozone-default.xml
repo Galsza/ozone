@@ -2127,23 +2127,6 @@
     </description>
   </property>
   <property>
-    <name>hdds.x509.grace.duration.token.checks</name>
-    <value>true</value>
-    <tag>OZONE, HDDS, SECURITY</tag>
-    <description>Enables block and delegation token expiry time sanity checks
-      compared to the hdds.x509.renew.grace.duration
-    </description>
-  </property>
-  <property>
-    <name>hdds.x509.grace.duration.token.checks</name>
-    <value>true</value>
-    <tag>OZONE, HDDS, SECURITY</tag>
-    <description>Default value for block and delegation token expiry time sanity
-      checks
-      compared to the hdds.x509.renew.grace.duration
-    </description>
-  </property>
-  <property>
     <name>hdds.x509.dir.name</name>
     <value>certs</value>
     <tag>OZONE, HDDS, SECURITY</tag>

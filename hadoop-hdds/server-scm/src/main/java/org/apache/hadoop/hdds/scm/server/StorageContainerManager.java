@@ -949,10 +949,13 @@ public final class StorageContainerManager extends ServiceRuntimeInfoImpl
         conf.get(HddsConfigKeys.HDDS_X509_RENEW_GRACE_DURATION,
             HddsConfigKeys.HDDS_X509_RENEW_GRACE_DURATION_DEFAULT)).toMillis();
     boolean tokenSanityChecksEnabled = conf.getBoolean(
-        HddsConfigKeys.HDDS_X509_GRACE_DURATION_TOKEN_CHECKS,
-        HddsConfigKeys.HDDS_X509_GRACE_DURATION_TOKEN_CHECKS_DEFAULT);
+        HddsConfigKeys.HDDS_X509_GRACE_DURATION_TOKEN_CHECKS_ENABLED,
+        HddsConfigKeys.HDDS_X509_GRACE_DURATION_TOKEN_CHECKS_ENABLED_DEFAULT);
+    LOG.info("TOKEN CHECKS VALUE: "
+        + HddsConfigKeys.HDDS_X509_GRACE_DURATION_TOKEN_CHECKS_ENABLED);
     if (tokenSanityChecksEnabled && expiryTime > certificateGracePeriod) {
-      throw new IllegalArgumentException("Token Sanity checks: " + tokenSanityChecksEnabled +
+      throw new IllegalArgumentException("Token Sanity checks: "
+          + tokenSanityChecksEnabled +
           " Certificate " +
           "grace" +
           " " +
