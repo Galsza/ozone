@@ -337,24 +337,9 @@ public abstract class DefaultCertificateClient implements CertificateClient {
     }
 
     List<X509Certificate> chain = new ArrayList<>();
-    // certificate bundle case
-    if (path.getCertificates().size() > 1) {
-      for (int i = 0; i < path.getCertificates().size(); i++) {
-        chain.add((X509Certificate) path.getCertificates().get(i));
-      }
-    } else {
-      // case before certificate bundle is supported
-      chain.add(getCertificate());
-      X509Certificate cert = getCACertificate();
-      if (cert != null) {
-        chain.add(getCACertificate());
-      }
-      cert = getLatestRootCACertificate();
-      if (cert != null) {
-        chain.add(cert);
-      }
+    for (int i = 0; i < path.getCertificates().size(); i++) {
+      chain.add((X509Certificate) path.getCertificates().get(i));
     }
-
     return chain;
   }
 
