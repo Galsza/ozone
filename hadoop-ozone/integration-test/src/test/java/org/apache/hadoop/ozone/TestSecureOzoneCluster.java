@@ -1327,16 +1327,13 @@ public final class TestSecureOzoneCluster {
       CertificateClient omCertClient = om.getCertificateClient();
       X509Certificate omCert = omCertClient.getCertificate();
       X509Certificate caCert = omCertClient.getCACertificate();
-      X509Certificate rootCaCert = omCertClient.getLatestRootCACertificate();
-      List certList = new ArrayList<>();
-      certList.add(caCert);
-      certList.add(rootCaCert);
       // set certificates in GrpcOmTransport
-      GrpcOmTransport.setCaCerts(certList);
+      GrpcOmTransport.setCaCerts(omCertClient.getAllCaCerts());
 
       GenericTestUtils.waitFor(() -> om.isLeaderReady(), 500, 10000);
       String transportCls = GrpcOmTransportFactory.class.getName();
       conf.set(OZONE_OM_TRANSPORT_CLASS, transportCls);
+      Thread.sleep(20 * 1000);
       try (OzoneClient client = OzoneClientFactory.getRpcClient(conf)) {
 
         ServiceInfoEx serviceInfoEx = client.getObjectStore()

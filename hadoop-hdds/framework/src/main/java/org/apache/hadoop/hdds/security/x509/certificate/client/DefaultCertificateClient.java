@@ -371,7 +371,7 @@ public abstract class DefaultCertificateClient implements CertificateClient {
   }
 
   private Optional<X509Certificate> getIssuerForCert(X509Certificate cert,
-      Set<X509Certificate> issuerCerts) {
+      List<X509Certificate> issuerCerts) {
     for (X509Certificate issuer : issuerCerts) {
       if (cert.getIssuerX500Principal().equals(
           issuer.getSubjectX500Principal())) {
@@ -896,10 +896,10 @@ public abstract class DefaultCertificateClient implements CertificateClient {
   }
 
   @Override
-  public Set<X509Certificate> getAllCaCerts() {
+  public List<X509Certificate> getAllCaCerts() {
     return caCertificates.stream().
         map(this::firstCertificateFrom)
-        .collect(Collectors.toSet());
+        .collect(Collectors.toList());
   }
 
   @Override
