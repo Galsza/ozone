@@ -34,7 +34,6 @@ import java.security.cert.CertPath;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import static org.apache.hadoop.hdds.security.OzoneSecurityException.ResultCodes.OM_PUBLIC_PRIVATE_KEY_FILE_NOT_EXIST;
 

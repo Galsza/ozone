@@ -33,9 +33,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -1333,7 +1331,6 @@ public final class TestSecureOzoneCluster {
       GenericTestUtils.waitFor(() -> om.isLeaderReady(), 500, 10000);
       String transportCls = GrpcOmTransportFactory.class.getName();
       conf.set(OZONE_OM_TRANSPORT_CLASS, transportCls);
-      Thread.sleep(20 * 1000);
       try (OzoneClient client = OzoneClientFactory.getRpcClient(conf)) {
 
         ServiceInfoEx serviceInfoEx = client.getObjectStore()
