@@ -156,6 +156,56 @@ public class TestPemFileBasedKeyStoresFactory {
     }
   }
 
+  @Test
+  public void testConnectionWithCAInTrustManager() throws Exception {
+    KeyStoresFactory serverFactory = null;
+    KeyStoresFactory clientFactory = null;
+    Server server = null;
+    ManagedChannel channel = null;
+    caClient.renewRootCA();
+    try {
+      // create server
+      serverFactory = new PemFileBasedKeyStoresFactory(secConf, caClient);
+      serverFactory.init(KeyStoresFactory.Mode.SERVER, true);
+      server = setupServer(serverFactory);
+      server.start();
+
+      // create client
+      clientFactory = new PemFileBasedKeyStoresFactory(secConf, caClient);
+      clientFactory.init(KeyStoresFactory.Mode.CLIENT, true);
+      channel = setupClient(clientFactory, server.getPort());
+      XceiverClientProtocolServiceStub asyncStub =
+          XceiverClientProtocolServiceGrpc.newStub(channel);
+
+      //it's enough to assume that there are multiple certificates when
+      // connection is made
+      ReloadingX509TrustManager trustManager =
+          (ReloadingX509TrustManager) serverFactory.getTrustManagers()[0];
+      Assert.assertTrue(trustManager.getAcceptedIssuers().length > 1);
+      trustManager =
+          (ReloadingX509TrustManager) clientFactory.getTrustManagers()[0];
+      Assert.assertTrue(trustManager.getAcceptedIssuers().length > 1);
+
+      // send command
+      ContainerCommandResponseProto responseProto = sendRequest(asyncStub);
+      Assert.assertTrue(responseProto.getResult() ==
+          ContainerProtos.Result.SUCCESS);
+    } finally {
+      if (channel != null) {
+        channel.shutdownNow();
+      }
+      if (server != null) {
+        server.shutdownNow();
+      }
+      if (clientFactory != null) {
+        clientFactory.destroy();
+      }
+      if (serverFactory != null) {
+        serverFactory.destroy();
+      }
+    }
+  }
+
   private ContainerCommandResponseProto sendRequest(
       XceiverClientProtocolServiceStub stub) throws Exception {
     DatanodeDetails dn = DatanodeDetails.newBuilder()

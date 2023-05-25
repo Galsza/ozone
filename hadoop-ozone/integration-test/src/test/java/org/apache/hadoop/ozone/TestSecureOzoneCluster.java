@@ -33,7 +33,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -1325,8 +1327,12 @@ public final class TestSecureOzoneCluster {
       CertificateClient omCertClient = om.getCertificateClient();
       X509Certificate omCert = omCertClient.getCertificate();
       X509Certificate caCert = omCertClient.getCACertificate();
+      X509Certificate rootCaCert = omCertClient.getLatestRootCACertificate();
+      List certList = new ArrayList<>();
+      certList.add(caCert);
+      certList.add(rootCaCert);
       // set certificates in GrpcOmTransport
-      GrpcOmTransport.setCaCerts(omCertClient.getAllCaCerts());
+      GrpcOmTransport.setCaCerts(certList);
 
       GenericTestUtils.waitFor(() -> om.isLeaderReady(), 500, 10000);
       String transportCls = GrpcOmTransportFactory.class.getName();
