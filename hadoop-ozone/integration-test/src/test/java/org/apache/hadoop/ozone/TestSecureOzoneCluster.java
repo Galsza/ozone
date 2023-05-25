@@ -1286,6 +1286,7 @@ public final class TestSecureOzoneCluster {
       omStore.setClusterId(clusterId);
       omStore.setOmId(omId);
 
+
       // Prepare the certificates for OM before OM start
       SecurityConfig securityConfig = new SecurityConfig(conf);
       CertificateClient scmCertClient = scm.getScmCertificateClient();
