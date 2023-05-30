@@ -40,6 +40,7 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
+import org.apache.commons.validator.routines.DomainValidator;
 import org.apache.hadoop.hdds.HddsConfigKeys;
 import org.apache.hadoop.hdds.annotation.InterfaceAudience;
 import org.apache.hadoop.hdds.conf.DefaultConfigManager;
@@ -1296,7 +1297,7 @@ public final class TestSecureOzoneCluster {
           new KeyPair(scmCertClient.getPublicKey(),
               scmCertClient.getPrivateKey()), scmCert,
           Duration.ofSeconds(certLifetime),
-          InetAddress.getLocalHost().getCanonicalHostName(), clusterId);
+          "om_cert", clusterId);
       String certId = certHolder.getSerialNumber().toString();
       certCodec.writeCertificate(certHolder);
       certCodec.writeCertificate(CertificateCodec.getCertificateHolder(scmCert),
@@ -1471,6 +1472,18 @@ public final class TestSecureOzoneCluster {
         .setSubject(subject)
         .setDigitalSignature(true)
         .setDigitalEncryption(true);
+
+    DomainValidator validator = DomainValidator.getInstance();
+    // Add all valid ips.
+    OzoneSecurityUtil.getValidInetsForCurrentHost().forEach(
+        ip -> {
+          csrBuilder.addIpAddress(ip.getHostAddress());
+          if (validator.isValid(ip.getCanonicalHostName())) {
+            csrBuilder.addDnsName(ip.getCanonicalHostName());
+          } else {
+            System.err.println("Invalid domain {}" + ip.getCanonicalHostName());
+          }
+        });
 
     LocalDateTime start = LocalDateTime.now();
     String certDuration = conf.get(HDDS_X509_DEFAULT_DURATION,
