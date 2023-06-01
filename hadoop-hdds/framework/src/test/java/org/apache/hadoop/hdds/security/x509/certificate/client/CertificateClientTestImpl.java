@@ -49,6 +49,7 @@ import org.apache.hadoop.hdds.security.x509.SecurityConfig;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.CAType;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.DefaultApprover;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.profile.DefaultProfile;
+import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateSignRequest;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.SelfSignedCertificate;
 import org.apache.hadoop.hdds.security.x509.exception.CertificateException;
@@ -78,6 +79,7 @@ public class CertificateClientTestImpl implements CertificateClient {
   private X509Certificate x509Certificate;
   private KeyPair rootKeyPair;
   private X509Certificate rootCert;
+  private Set<X509Certificate> rootCerts;
   private HDDSKeyGenerator keyGen;
   private DefaultApprover approver;
   private KeyStoresFactory serverKeyStoresFactory;
@@ -118,7 +120,8 @@ public class CertificateClientTestImpl implements CertificateClient {
     rootCert = new JcaX509CertificateConverter().getCertificate(
         builder.build());
     certificateMap.put(rootCert.getSerialNumber().toString(), rootCert);
-
+    rootCerts = ConcurrentHashMap.newKeySet();
+    rootCerts.add(rootCert);
     // Generate normal certificate, signed by RootCA certificate
     approver = new DefaultApprover(new DefaultProfile(), securityConfig);
 
@@ -278,9 +281,14 @@ public class CertificateClientTestImpl implements CertificateClient {
   public List<String> getCAList() {
     return null;
   }
+
   @Override
-  public List<String> listCA() throws IOException  {
-    return null;
+  public List<String> listCA() throws IOException {
+    ArrayList<String> pemStrings = new ArrayList<>();
+    for (X509Certificate cert : rootCerts) {
+      pemStrings.add(CertificateCodec.getPEMEncodedString(cert));
+    }
+    return pemStrings;
   }
 
   @Override
@@ -307,6 +315,7 @@ public class CertificateClientTestImpl implements CertificateClient {
     rootCert = new JcaX509CertificateConverter().getCertificate(
         builder.build());
     certificateMap.put(rootCert.getSerialNumber().toString(), rootCert);
+    rootCerts.add(rootCert);
   }
 
   public void renewKey() throws Exception {
