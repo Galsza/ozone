@@ -205,6 +205,10 @@ public final class HddsConfigKeys {
       "hdds.x509.grace.duration.token.checks.enabled";
   public static final boolean
       HDDS_X509_GRACE_DURATION_TOKEN_CHECKS_ENABLED_DEFAULT = true;
+  public static final String HDDS_X509_ROOTCA_CLIENT_POLLING_FREQUENCY =
+      "hdds.x509.rootca.client.polling.frequency";
+  public static final String HDDS_X509_ROOTCA_CLIENT_POLLING_FREQUENCY_DEFAULT
+      = "2h";
   public static final String HDDS_NEW_KEY_CERT_DIR_NAME_SUFFIX = "-next";
   public static final String HDDS_BACKUP_KEY_CERT_DIR_NAME_SUFFIX = "-previous";
 

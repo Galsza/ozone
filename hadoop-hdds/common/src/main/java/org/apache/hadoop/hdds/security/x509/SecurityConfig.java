@@ -40,6 +40,8 @@ import static org.apache.hadoop.hdds.HddsConfigKeys.HDDS_DEFAULT_KEY_LEN;
 import static org.apache.hadoop.hdds.HddsConfigKeys.HDDS_DEFAULT_SECURITY_PROVIDER;
 import static org.apache.hadoop.hdds.HddsConfigKeys.HDDS_X509_ROOTCA_CERTIFICATE_FILE;
 import static org.apache.hadoop.hdds.HddsConfigKeys.HDDS_X509_ROOTCA_CERTIFICATE_FILE_DEFAULT;
+import static org.apache.hadoop.hdds.HddsConfigKeys.HDDS_X509_ROOTCA_CLIENT_POLLING_FREQUENCY;
+import static org.apache.hadoop.hdds.HddsConfigKeys.HDDS_X509_ROOTCA_CLIENT_POLLING_FREQUENCY_DEFAULT;
 import static org.apache.hadoop.hdds.HddsConfigKeys.HDDS_X509_ROOTCA_PRIVATE_KEY_FILE;
 import static org.apache.hadoop.hdds.HddsConfigKeys.HDDS_X509_ROOTCA_PRIVATE_KEY_FILE_DEFAULT;
 import static org.apache.hadoop.hdds.HddsConfigKeys.HDDS_X509_ROOTCA_PUBLIC_KEY_FILE;
@@ -116,6 +118,7 @@ public class SecurityConfig {
   private final String externalRootCaPublicKeyPath;
   private final String externalRootCaPrivateKeyPath;
   private final String externalRootCaCert;
+  private final Duration rootCaClientPollingFrequency;
 
   /**
    * Constructs a SecurityConfig.
@@ -191,6 +194,13 @@ public class SecurityConfig {
     this.externalRootCaPrivateKeyPath = this.configuration.get(
         HDDS_X509_ROOTCA_PRIVATE_KEY_FILE,
         HDDS_X509_ROOTCA_PRIVATE_KEY_FILE_DEFAULT);
+
+    String rootCaClientPollingFrequencyString = this.configuration.get(
+        HDDS_X509_ROOTCA_CLIENT_POLLING_FREQUENCY,
+        HDDS_X509_ROOTCA_CLIENT_POLLING_FREQUENCY_DEFAULT);
+
+    this.rootCaClientPollingFrequency =
+        Duration.parse(rootCaClientPollingFrequencyString);
 
     this.crlName = this.configuration.get(HDDS_X509_CRL_NAME,
         HDDS_X509_CRL_NAME_DEFAULT);
@@ -448,6 +458,10 @@ public class SecurityConfig {
 
   public String getExternalRootCaCert() {
     return externalRootCaCert;
+  }
+
+  public Duration getRootCaClientPollingFrequency() {
+    return rootCaClientPollingFrequency;
   }
 
   /**
