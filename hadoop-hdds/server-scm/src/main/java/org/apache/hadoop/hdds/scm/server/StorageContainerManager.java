@@ -27,6 +27,7 @@ import com.google.protobuf.BlockingService;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdds.HddsConfigKeys;
@@ -48,7 +49,8 @@ import org.apache.hadoop.hdds.scm.container.balancer.MoveManager;
 import org.apache.hadoop.hdds.scm.container.replication.ContainerReplicaPendingOps;
 import org.apache.hadoop.hdds.scm.container.replication.DatanodeCommandCountUpdatedHandler;
 import org.apache.hadoop.hdds.scm.container.replication.LegacyReplicationManager;
-import org.apache.hadoop.hdds.scm.crl.CRLStatusReportHandler;
+import org.apache.hadoop.hdds.scm.ha.SCMServiceException;
+import org.apache.hadoop.hdds.scm.security.CRLStatusReportHandler;
 import org.apache.hadoop.hdds.scm.ha.BackgroundSCMService;
 import org.apache.hadoop.hdds.scm.ha.HASecurityUtils;
 import org.apache.hadoop.hdds.scm.ha.SCMContext;
@@ -66,6 +68,7 @@ import org.apache.hadoop.hdds.scm.ha.SequenceIdGenerator;
 import org.apache.hadoop.hdds.scm.ScmInfo;
 import org.apache.hadoop.hdds.scm.node.NodeAddressUpdateHandler;
 import org.apache.hadoop.hdds.scm.security.SecretKeyManagerService;
+import org.apache.hadoop.hdds.scm.security.RootCARotationManager;
 import org.apache.hadoop.hdds.scm.server.upgrade.FinalizationManager;
 import org.apache.hadoop.hdds.scm.server.upgrade.FinalizationManagerImpl;
 import org.apache.hadoop.hdds.scm.ha.StatefulServiceStateManager;
@@ -263,6 +266,8 @@ public final class StorageContainerManager extends ServiceRuntimeInfoImpl
    */
   private final String scmStarterUser;
   private final OzoneAdmins scmAdmins;
+  private OzoneAdmins scmReadOnlyAdmins;
+
   /**
    * SCM mxbean.
    */
@@ -272,6 +277,7 @@ public final class StorageContainerManager extends ServiceRuntimeInfoImpl
 
   private SCMSafeModeManager scmSafeModeManager;
   private CertificateClient scmCertificateClient;
+  private RootCARotationManager rootCARotationManager;
   private ContainerTokenSecretManager containerTokenMgr;
 
   private final JvmPauseMonitor jvmPauseMonitor;
@@ -381,6 +387,9 @@ public final class StorageContainerManager extends ServiceRuntimeInfoImpl
 
     eventQueue = new EventQueue();
     serviceManager = new SCMServiceManager();
+    reconfigurationHandler =
+        new ReconfigurationHandler("SCM", conf, this::checkAdminAccess)
+            .register(OZONE_ADMINISTRATORS, this::reconfOzoneAdmins);
 
     initializeSystemManagers(conf, configurator);
 
@@ -405,11 +414,8 @@ public final class StorageContainerManager extends ServiceRuntimeInfoImpl
 
     scmStarterUser = UserGroupInformation.getCurrentUser().getShortUserName();
     scmAdmins = OzoneAdmins.getOzoneAdmins(scmStarterUser, conf);
+    scmReadOnlyAdmins = OzoneAdmins.getReadonlyAdmins(conf);
     LOG.info("SCM start with adminUsers: {}", scmAdmins.getAdminUsernames());
-
-    reconfigurationHandler =
-        new ReconfigurationHandler("SCM", conf, this::checkAdminAccess)
-            .register(OZONE_ADMINISTRATORS, this::reconfOzoneAdmins);
 
     datanodeProtocolServer = new SCMDatanodeProtocolServer(conf, this,
         eventQueue, scmContext);
@@ -782,6 +788,7 @@ public final class StorageContainerManager extends ServiceRuntimeInfoImpl
           systemClock,
           legacyRM,
           containerReplicaPendingOps);
+      reconfigurationHandler.register(replicationManager.getConfig());
     }
     serviceManager.register(replicationManager);
     if (configurator.getScmSafeModeManager() != null) {
@@ -876,18 +883,27 @@ public final class StorageContainerManager extends ServiceRuntimeInfoImpl
     SecretKeyManager secretKeyManager = secretKeyManagerService != null ?
         secretKeyManagerService.getSecretKeyManager() : null;
 
+    X509Certificate rootCaCert = scmCertificateClient == null ? null :
+        scmCertificateClient.getRootCACertificate() != null ?
+            scmCertificateClient.getRootCACertificate() :
+            scmCertificateClient.getCACertificate();
+    List<X509Certificate> rootCaList = new ArrayList<>();
+    if (rootCaCert != null) {
+      rootCaList.add(rootCaCert);
+    }
     // We need to pass getCACertificate as rootCA certificate,
     // as for SCM CA is root-CA.
     securityProtocolServer = new SCMSecurityProtocolServer(conf,
-        rootCertificateServer, scmCertificateServer,
-        scmCertificateClient == null ? null :
-            scmCertificateClient.getRootCACertificate() != null ?
-            scmCertificateClient.getRootCACertificate() :
-            scmCertificateClient.getCACertificate(), this, secretKeyManager);
+        rootCertificateServer,
+        scmCertificateServer,
+        rootCaList,
+        this,
+        secretKeyManager);
 
     if (securityConfig.isContainerTokenEnabled()) {
       containerTokenMgr = createContainerTokenSecretManager(configuration);
     }
+    rootCARotationManager = new RootCARotationManager(this);
   }
 
   /**
@@ -1503,6 +1519,14 @@ public final class StorageContainerManager extends ServiceRuntimeInfoImpl
       persistSCMCertificates();
     }
 
+    if (rootCARotationManager != null) {
+      try {
+        rootCARotationManager.start();
+      } catch (SCMServiceException e) {
+        throw new IOException("Failed to start root CA rotation manager", e);
+      }
+    }
+
     scmBlockManager.start();
     leaseManager.start();
 
@@ -1620,6 +1644,10 @@ public final class StorageContainerManager extends ServiceRuntimeInfoImpl
 
     if (getSecurityProtocolServer() != null) {
       getSecurityProtocolServer().stop();
+    }
+
+    if (rootCARotationManager != null) {
+      rootCARotationManager.stop();
     }
 
     try {
@@ -1838,6 +1866,13 @@ public final class StorageContainerManager extends ServiceRuntimeInfoImpl
   }
 
   /**
+   * Returns SCM root CA rotation manager.
+   */
+  public RootCARotationManager getRootCARotationManager() {
+    return rootCARotationManager;
+  }
+
+  /**
    * Check if the current scm is the leader and ready for accepting requests.
    * @return - if the current scm is the leader and is ready.
    */
@@ -1854,15 +1889,17 @@ public final class StorageContainerManager extends ServiceRuntimeInfoImpl
   }
 
   private void checkAdminAccess(String op) throws IOException {
-    checkAdminAccess(getRemoteUser());
+    checkAdminAccess(getRemoteUser(), false);
   }
 
-  public void checkAdminAccess(UserGroupInformation remoteUser)
+  public void checkAdminAccess(UserGroupInformation remoteUser, boolean isRead)
       throws IOException {
     if (remoteUser != null && !scmAdmins.isAdmin(remoteUser)) {
-      throw new AccessControlException(
-          "Access denied for user " + remoteUser.getUserName() +
-              ". SCM superuser privilege is required.");
+      if (!isRead || !scmReadOnlyAdmins.isAdmin(remoteUser)) {
+        throw new AccessControlException(
+            "Access denied for user " + remoteUser.getUserName() +
+                ". SCM superuser privilege is required.");
+      }
     }
   }
 

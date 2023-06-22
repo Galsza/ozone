@@ -1305,6 +1305,15 @@ public class BasicRootedOzoneClientAdapterImpl
   }
 
   @Override
+  public void deleteSnapshot(String pathStr, String snapshotName)
+      throws IOException {
+    OFSPath ofsPath = new OFSPath(pathStr, config);
+    proxy.deleteSnapshot(ofsPath.getVolumeName(),
+        ofsPath.getBucketName(),
+        snapshotName);
+  }
+
+  @Override
   public SnapshotDiffReport getSnapshotDiffReport(Path snapshotDir,
       String fromSnapshot, String toSnapshot)
       throws IOException, InterruptedException {
@@ -1352,7 +1361,7 @@ public class BasicRootedOzoneClientAdapterImpl
     while (true) {
       snapshotDiffResponse =
           objectStore.snapshotDiff(volume, bucket, fromSnapshot, toSnapshot,
-              token, -1, false);
+              token, -1, false, false);
       if (snapshotDiffResponse.getJobStatus() == DONE) {
         break;
       }
