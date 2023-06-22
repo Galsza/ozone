@@ -208,7 +208,7 @@ public final class HddsConfigKeys {
   public static final String HDDS_X509_ROOTCA_CLIENT_POLLING_FREQUENCY =
       "hdds.x509.rootca.client.polling.frequency";
   public static final String HDDS_X509_ROOTCA_CLIENT_POLLING_FREQUENCY_DEFAULT
-      = "2h";
+      = "PT2h";
   public static final String HDDS_NEW_KEY_CERT_DIR_NAME_SUFFIX = "-next";
   public static final String HDDS_BACKUP_KEY_CERT_DIR_NAME_SUFFIX = "-previous";
   public static final String HDDS_X509_CA_ROTATION_CHECK_INTERNAL =
