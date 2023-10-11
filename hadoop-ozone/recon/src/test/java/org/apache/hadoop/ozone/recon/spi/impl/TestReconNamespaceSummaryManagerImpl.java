@@ -23,10 +23,10 @@ import org.apache.hadoop.ozone.recon.ReconTestInjector;
 import org.apache.hadoop.ozone.recon.api.types.NSSummary;
 import org.apache.hadoop.ozone.recon.recovery.ReconOMMetadataManager;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
@@ -51,7 +51,7 @@ public class TestReconNamespaceSummaryManagerImpl {
   private static final Set<Long> TEST_CHILD_DIR =
           new HashSet<>(Arrays.asList(new Long[]{1L, 2L, 3L}));
 
-  @BeforeClass
+  @BeforeAll
   public static void setupOnce() throws Exception {
     reconOMMetadataManager = getTestReconOmMetadataManager(
         initializeNewOmMetadataManager(TEMP_FOLDER.newFolder()),
@@ -70,7 +70,7 @@ public class TestReconNamespaceSummaryManagerImpl {
     }
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     // Clear namespace table before running each test
     reconNamespaceSummaryManager.clearNSSummaryTable();

@@ -59,9 +59,9 @@ import org.apache.hadoop.ozone.recon.spi.impl.OzoneManagerServiceProviderImpl;
 import org.apache.hadoop.ozone.recon.spi.impl.StorageContainerServiceProviderImpl;
 import org.apache.hadoop.ozone.recon.tasks.NSSummaryTaskWithLegacy;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response;
@@ -351,7 +351,7 @@ public class TestNSSummaryEndpointWithLegacy {
   private static final long DIR_ONE_DATA_SIZE = KEY_TWO_SIZE +
       KEY_THREE_SIZE + KEY_SIX_SIZE;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     conf = new OzoneConfiguration();
     OMMetadataManager omMetadataManager = initializeNewOmMetadataManager(

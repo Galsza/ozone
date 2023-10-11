@@ -25,9 +25,9 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.hadoop.hdds.conf.OzoneConfiguration;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.google.inject.AbstractModule;
@@ -46,7 +46,7 @@ public class TestReconDBProvider {
 
   private Injector injector;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     tempFolder.create();
     injector = Guice.createInjector(new AbstractModule() {

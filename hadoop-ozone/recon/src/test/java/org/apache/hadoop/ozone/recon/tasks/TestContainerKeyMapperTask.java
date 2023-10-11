@@ -50,9 +50,9 @@ import org.apache.hadoop.ozone.recon.api.types.ContainerKeyPrefix;
 import org.apache.hadoop.ozone.recon.recovery.ReconOMMetadataManager;
 import org.apache.hadoop.ozone.recon.spi.ReconContainerMetadataManager;
 import org.apache.hadoop.ozone.recon.spi.impl.OzoneManagerServiceProviderImpl;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 /**
@@ -80,7 +80,7 @@ public class TestContainerKeyMapperTask {
   private static final long VOL_OBJECT_ID = 0L;
   private static final long KEY_ONE_SIZE = 500L; // 500 bytes
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     omMetadataManager = initializeNewOmMetadataManager(
         temporaryFolder.newFolder());

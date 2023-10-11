@@ -26,9 +26,9 @@ import org.apache.hadoop.ozone.om.helpers.RepeatedOmKeyInfo;
 import org.apache.hadoop.ozone.om.helpers.OmPrefixInfo;
 import org.apache.hadoop.ozone.om.helpers.SnapshotInfo;
 import org.apache.hadoop.ozone.om.helpers.BucketLayout;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -57,7 +57,7 @@ public class TestOmUpdateEventValidator {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException {
     omMetadataManager = initializeNewOmMetadataManager(
         temporaryFolder.newFolder());

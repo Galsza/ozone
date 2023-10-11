@@ -38,10 +38,10 @@ import org.apache.hadoop.ozone.recon.spi.impl.StorageContainerServiceProviderImp
 import org.apache.hadoop.ozone.recon.tasks.ReconTaskController;
 import org.apache.hadoop.security.authentication.client.AuthenticationException;
 import org.hadoop.ozone.recon.schema.tables.daos.ReconTaskStatusDao;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response;
@@ -72,7 +72,7 @@ public class TestTriggerDBSyncEndpoint {
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
   private ReconTestInjector reconTestInjector;
 
-  @Before
+  @BeforeEach
   public void setUp() throws IOException, AuthenticationException {
     OzoneConfiguration configuration = new OzoneConfiguration();
     configuration.set(OZONE_RECON_OM_SNAPSHOT_DB_DIR,

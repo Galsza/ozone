@@ -52,10 +52,10 @@ import org.apache.hadoop.ozone.protocol.commands.ReregisterCommand;
 import org.apache.hadoop.ozone.protocol.commands.SCMCommand;
 import org.apache.hadoop.ozone.protocol.commands.SetNodeOperationalStateCommand;
 import org.apache.hadoop.ozone.recon.ReconUtils;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 /**
@@ -71,7 +71,7 @@ public class TestReconNodeManager {
   private ReconStorageConfig reconStorageConfig;
   private HDDSLayoutVersionManager versionManager;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     conf = new OzoneConfiguration();
     conf.set(OZONE_METADATA_DIRS,
@@ -83,7 +83,7 @@ public class TestReconNodeManager {
     store = DBStoreBuilder.createDBStore(conf, new ReconSCMDBDefinition());
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     store.close();
   }

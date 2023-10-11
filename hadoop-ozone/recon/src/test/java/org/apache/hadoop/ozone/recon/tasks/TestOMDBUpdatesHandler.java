@@ -49,9 +49,9 @@ import org.apache.hadoop.ozone.om.helpers.OmVolumeArgs;
 import org.apache.hadoop.hdds.utils.db.RDBStore;
 import org.apache.hadoop.ozone.security.OzoneTokenIdentifier;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.TransactionLogIterator;
@@ -80,7 +80,7 @@ public class TestOMDBUpdatesHandler {
     return configuration;
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     OzoneConfiguration configuration = createNewTestPath();
     omMetadataManager = new OmMetadataManagerImpl(configuration, null);

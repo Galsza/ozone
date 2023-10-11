@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.apache.hadoop.hdds.conf.OzoneConfiguration;
@@ -75,9 +76,11 @@ import org.apache.hadoop.ozone.recon.tasks.ReconTaskController;
 import org.hadoop.ozone.recon.schema.tables.daos.ReconTaskStatusDao;
 import org.hadoop.ozone.recon.schema.tables.pojos.ReconTaskStatus;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.rocksdb.TransactionLogIterator.BatchResult;
@@ -88,25 +91,24 @@ import org.rocksdb.WriteBatch;
  */
 public class TestOzoneManagerServiceProviderImpl {
 
-  @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
   private OzoneConfiguration configuration;
   private OzoneManagerProtocol ozoneManagerProtocol;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  public void setUp(@TempDir Path tempDir) throws Exception {
     configuration = new OzoneConfiguration();
     configuration.set(OZONE_RECON_OM_SNAPSHOT_DB_DIR,
-        temporaryFolder.newFolder().getAbsolutePath());
+        tempDir.resolve("SnapshotDbDir").toString());
     configuration.set(OZONE_RECON_DB_DIR,
-        temporaryFolder.newFolder().getAbsolutePath());
+        tempDir.resolve("ReconDBDir").toString());
     configuration.set("ozone.om.address", "localhost:9862");
     ozoneManagerProtocol = getMockOzoneManagerClient(new DBUpdates());
   }
 
   @Test
-  public void testUpdateReconOmDBWithNewSnapshot() throws Exception {
+  public void testUpdateReconOmDBWithNewSnapshot(@TempDir Path tempDir) throws Exception {
 
     OMMetadataManager omMetadataManager =
         initializeNewOmMetadataManager(temporaryFolder.newFolder());

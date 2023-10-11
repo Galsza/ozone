@@ -54,13 +54,14 @@ import static org.apache.hadoop.hdds.scm.ScmConfigKeys.OZONE_SCM_NAMES;
 import static org.apache.hadoop.hdds.upgrade.HDDSLayoutVersionManager.maxLayoutVersion;
 import static org.apache.hadoop.ozone.OzoneConfigKeys.OZONE_METADATA_DIRS;
 import static org.apache.hadoop.ozone.recon.OMMetadataManagerTestUtils.getRandomPipeline;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import org.junit.Before;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
@@ -81,7 +82,7 @@ public class TestReconPipelineManager {
   private SCMHAManager scmhaManager;
   private SCMContext scmContext;
 
-  @Before
+  @BeforeEach
   public void setup() throws IOException {
     conf = new OzoneConfiguration();
     conf.set(OZONE_METADATA_DIRS,
@@ -94,7 +95,7 @@ public class TestReconPipelineManager {
     scmContext = SCMContext.emptyContext();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     store.close();
   }

@@ -69,17 +69,21 @@ import org.apache.hadoop.ozone.recon.tasks.ContainerKeyMapperTask;
 import org.hadoop.ozone.recon.schema.ContainerSchemaDefinition.UnHealthyContainerStates;
 import org.hadoop.ozone.recon.schema.tables.pojos.UnhealthyContainers;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -114,8 +118,8 @@ import static org.mockito.Mockito.when;
  */
 public class TestContainerEndpoint {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  public Path temporaryFolder;
 
   private static final Logger LOG =
       LoggerFactory.getLogger(TestContainerEndpoint.class);
@@ -166,12 +170,17 @@ public class TestContainerEndpoint {
   private UUID uuid4;
 
   private void initializeInjector() throws Exception {
-    reconOMMetadataManager = getTestReconOmMetadataManager(
-        initializeNewOmMetadataManager(temporaryFolder.newFolder()),
-        temporaryFolder.newFolder());
+    Path metaDataDbDir = Files.createDirectories(temporaryFolder.resolve(
+        "metaDataDbDir"));
+    Path reconDbDir = Files.createDirectories(temporaryFolder.resolve(
+        "reconDbDir"));
+    reconOMMetadataManager =
+        getTestReconOmMetadataManager(
+            initializeNewOmMetadataManager(metaDataDbDir.toFile()),
+            reconDbDir.toFile());
 
     ReconTestInjector reconTestInjector =
-        new ReconTestInjector.Builder(temporaryFolder)
+        new ReconTestInjector.Builder(temporaryFolder.toFile())
             .withReconSqlDb()
             .withReconOm(reconOMMetadataManager)
             .withOmServiceProvider(mock(OzoneManagerServiceProviderImpl.class))
@@ -205,7 +214,7 @@ public class TestContainerEndpoint {
         .getContainerStateManager();
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     // The following setup runs only once
     if (!isSetupDone) {

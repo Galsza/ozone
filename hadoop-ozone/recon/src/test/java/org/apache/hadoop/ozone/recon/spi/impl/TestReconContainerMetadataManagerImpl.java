@@ -36,10 +36,10 @@ import org.apache.hadoop.ozone.recon.api.types.KeyPrefixContainer;
 import org.apache.hadoop.ozone.recon.recovery.ReconOMMetadataManager;
 import org.apache.hadoop.ozone.recon.spi.ReconContainerMetadataManager;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.rules.TemporaryFolder;
 
 /**
@@ -56,7 +56,7 @@ public class TestReconContainerMetadataManagerImpl {
   private String keyPrefix2 = "V3/B1/K2";
   private String keyPrefix3 = "V3/B2/K1";
 
-  @BeforeClass
+  @BeforeAll
   public static void setupOnce() throws Exception {
     reconOMMetadataManager = getTestReconOmMetadataManager(
         initializeNewOmMetadataManager(TEMP_FOLDER.newFolder()),
@@ -71,7 +71,7 @@ public class TestReconContainerMetadataManagerImpl {
         reconTestInjector.getInstance(ReconContainerMetadataManager.class);
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     // Reset containerDB before running each test
     reconContainerMetadataManager.reinitWithNewContainerDataFromOm(null);
