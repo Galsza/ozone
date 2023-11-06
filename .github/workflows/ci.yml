@@ -208,10 +208,10 @@ jobs:
           distribution: 'temurin'
           java-version: 8
       - name: Execute tests
-          run: hadoop-ozone/dev-support/checks/unit.sh -Dtest=TestRootCaRotationPoller
-          continue-on-error: true
-          env:
-            ITERATIONS: 100
+        run: hadoop-ozone/dev-support/checks/unit.sh -Dtest=TestRootCaRotationPoller
+        continue-on-error: true
+        env:
+          ITERATIONS: 100
       - name: Summary of failures
         run: hadoop-ozone/dev-support/checks/_summary.sh target/${{ matrix.check }}/summary.txt
         if: ${{ !cancelled() }}
