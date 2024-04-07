@@ -2268,15 +2268,23 @@
     <value>2048</value>
     <tag>SCM, HDDS, X509, SECURITY</tag>
     <description>
-      SCM CA key length.  This is an algorithm-specific metric, such as modulus length, specified in number of bits.
+      SCM CA key length. This is an algorithm-specific metric, such as modulus
+      length, specified in number of bits.
     </description>
+  </property>
+  <property>
+    <name>ozone.compliance.allowed.hdds.key.len</name>
+    <value>*</value>
+    <tag>OZONE, HDDS, SECURITY</tag>
+    <description>Allowed PKI key lengths.</description>
   </property>
   <property>
     <name>hdds.key.dir.name</name>
     <value>keys</value>
     <tag>SCM, HDDS, X509, SECURITY</tag>
     <description>
-      Directory to store public/private key for SCM CA. This is relative to ozone/hdds meteadata dir.
+      Directory to store public/private key for SCM CA. This is relative to
+      ozone/hdds meteadata dir.
     </description>
   </property>
   <property>
