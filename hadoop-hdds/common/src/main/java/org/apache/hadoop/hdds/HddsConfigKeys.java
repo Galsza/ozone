@@ -138,6 +138,8 @@ public final class HddsConfigKeys {
   public static final int HDDS_DEFAULT_KEY_LEN = 2048;
   public static final String HDDS_KEY_ALGORITHM = "hdds.key.algo";
   public static final String HDDS_DEFAULT_KEY_ALGORITHM = "RSA";
+  public static final String OZONE_COMPLIANCE_ALLOWED_HDDS_KEY_ALGORITHM = "ozone.compliance.allowed.hdds.key.algo";
+  public static final String OZONE_COMPLIANCE_ALLOWED_HDDS_KEY_ALGORITHM_DEFAULT = "*";
   public static final String HDDS_SECURITY_PROVIDER = "hdds.security.provider";
   public static final String HDDS_DEFAULT_SECURITY_PROVIDER = "BC";
   public static final String HDDS_KEY_DIR_NAME = "hdds.key.dir.name";
