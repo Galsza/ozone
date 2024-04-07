@@ -2264,11 +2264,20 @@
     </description>
   </property>
   <property>
+    <name>ozone.compliance.allowed.hdds.security.provider</name>
+    <value>*</value>
+    <tag>OZONE, HDDS, SECURITY</tag>
+    <description>
+      Allowed libraries for providing security related functions
+    </description>
+  </property>
+  <property>
     <name>hdds.key.len</name>
     <value>2048</value>
     <tag>SCM, HDDS, X509, SECURITY</tag>
     <description>
-      SCM CA key length.  This is an algorithm-specific metric, such as modulus length, specified in number of bits.
+      SCM CA key length. This is an algorithm-specific metric, such as modulus
+      length, specified in number of bits.
     </description>
   </property>
   <property>

@@ -140,6 +140,9 @@ public final class HddsConfigKeys {
   public static final String HDDS_DEFAULT_KEY_ALGORITHM = "RSA";
   public static final String HDDS_SECURITY_PROVIDER = "hdds.security.provider";
   public static final String HDDS_DEFAULT_SECURITY_PROVIDER = "BC";
+  public static final String OZONE_COMPLIANCE_ALLOWED_HDDS_SECURITY_PROVIDER =
+      "ozone.compliance.allowed.hdds.security.provider";
+  public static final String OZONE_COMPLIANCE_ALLOWED_HDDS_SECURITY_PROVIDER_DEFAULT = "*";
   public static final String HDDS_KEY_DIR_NAME = "hdds.key.dir.name";
   public static final String HDDS_KEY_DIR_NAME_DEFAULT = "keys";
   // TODO : Talk to StorageIO classes and see if they can return a secure
