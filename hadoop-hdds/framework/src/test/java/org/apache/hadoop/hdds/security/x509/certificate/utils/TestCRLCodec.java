@@ -257,10 +257,8 @@ public class TestCRLCodec {
             .setKey(keyPair)
             .makeCA()
             .build();
-    CertificateCodec codec =
-        new CertificateCodec(securityConfig, COMPONENT);
-
-    String pemString = codec.getPEMEncodedString(cert);
+    
+    String pemString = CertificateCodec.getPEMEncodedString(cert);
     basePath = new File(
         String.valueOf(
             securityConfig.getCertificateLocation("scm")));
@@ -268,8 +266,7 @@ public class TestCRLCodec {
     if (!basePath.exists()) {
       assertTrue(basePath.mkdirs());
     }
-    codec.writeCertificate(basePath.toPath(), TMP_CERT_FILE_NAME,
-        pemString);
+    CertificateCodec.writeCertificate(Paths.get(basePath.toPath().toString(), TMP_CERT_FILE_NAME), pemString);
   }
 
   private X509CertificateHolder readTempCert()

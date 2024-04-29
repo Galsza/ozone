@@ -66,18 +66,13 @@ public final class CertInfo implements Comparable<CertInfo>, Serializable {
 
   public CertInfoProto getProtobuf() throws SCMSecurityException {
     return CertInfoProto.newBuilder()
-        .setX509Certificate(getX509CertificatePEMEncodedString())
+        .setX509Certificate(CertificateCodec.getPEMEncodedString(x509Certificate))
         .setTimestamp(getTimestamp())
         .build();
   }
 
   public X509Certificate getX509Certificate() {
     return x509Certificate;
-  }
-
-  public String getX509CertificatePEMEncodedString()
-      throws SCMSecurityException {
-    return CertificateCodec.getPEMEncodedString(getX509Certificate());
   }
 
   public long getTimestamp() {

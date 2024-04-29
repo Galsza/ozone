@@ -27,7 +27,6 @@ import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
 import org.apache.hadoop.hdds.security.x509.keys.KeyCodec;
 import org.apache.hadoop.ozone.security.OMCertificateClient;
 import org.apache.hadoop.security.ssl.KeyStoreTestUtil;
-import org.bouncycastle.cert.X509CertificateHolder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -148,13 +147,11 @@ class TestSecureOzoneManager {
     // Case 5: When only certificate is present.
     FileUtils.deleteQuietly(Paths.get(securityConfig.getKeyLocation(COMPONENT)
         .toString(), securityConfig.getPublicKeyFileName()).toFile());
-    CertificateCodec certCodec =
-        new CertificateCodec(securityConfig, COMPONENT);
     X509Certificate x509Certificate = KeyStoreTestUtil.generateCertificate(
         "CN=Test", new KeyPair(publicKey, privateKey), 365,
         securityConfig.getSignatureAlgo());
-    certCodec.writeCertificate(new X509CertificateHolder(
-        x509Certificate.getEncoded()));
+    CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
+        CertificateCodec.getPEMEncodedString(x509Certificate));
     omStorage.setOmCertSerialId(x509Certificate.getSerialNumber().toString());
     client =
         new OMCertificateClient(

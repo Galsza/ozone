@@ -35,7 +35,6 @@ import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateSignReq
 import org.apache.hadoop.hdds.security.x509.exception.CertificateException;
 import org.apache.hadoop.ozone.OzoneConsts;
 import org.apache.hadoop.ozone.OzoneSecurityUtil;
-import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -198,8 +197,8 @@ public class SCMCertificateClient extends DefaultCertificateClient {
         storeCertificate(pemEncodedCert, CAType.NONE, certCodec,
             false, !renew);
         //note: this does exactly the same as store certificate
-        certCodec.writeCertificate(certCodec.getLocation().toAbsolutePath(),
-            getSecurityConfig().getCertificateFileName(), pemEncodedCert);
+        CertificateCodec.writeCertificate(Paths.get(certPath.toString(),
+            getSecurityConfig().getCertificateFileName()), pemEncodedCert);
 
         X509Certificate certificate =
             CertificateCodec.getX509Certificate(pemEncodedCert);
@@ -371,11 +370,8 @@ public class SCMCertificateClient extends DefaultCertificateClient {
       persistSubCACertificate(pemEncodedCert);
       X509Certificate cert =
           (X509Certificate) subSCMCertHolderList.getCertificates().get(0);
-      X509CertificateHolder subSCMCertHolder =
-          CertificateCodec.getCertificateHolder(cert);
-
       // Persist scm cert serial ID.
-      saveCertIdCallback.accept(subSCMCertHolder.getSerialNumber().toString());
+      saveCertIdCallback.accept(cert.getSerialNumber().toString());
     } catch (InterruptedException | ExecutionException | IOException |
              java.security.cert.CertificateException e) {
       LOG.error("Error while fetching/storing SCM signed certificate.", e);
@@ -418,10 +414,9 @@ public class SCMCertificateClient extends DefaultCertificateClient {
    */
   private void persistSubCACertificate(
       String certificateHolder) throws IOException {
-    CertificateCodec certCodec =
-        new CertificateCodec(getSecurityConfig(), getComponentName());
-
-    certCodec.writeCertificate(certCodec.getLocation().toAbsolutePath(),
-        getSecurityConfig().getCertificateFileName(), certificateHolder);
+    SecurityConfig config = getSecurityConfig();
+    CertificateCodec.writeCertificate(
+        Paths.get(config.getCertificateLocation(getComponentName()).toString(), config.getCertificateFileName()),
+        certificateHolder);
   }
 }

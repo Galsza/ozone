@@ -181,7 +181,7 @@ public class TestHddsSecureDatanodeInit {
   @Test
   public void testSecureDnStartupCase1() throws Exception {
     // Case 1: When only certificate is present.
-    certCodec.writeCertificate(certHolder);
+    writeCertificate();
     RuntimeException rteException = assertThrows(
         RuntimeException.class,
         () -> service.initializeCertificateClient(client));
@@ -214,7 +214,7 @@ public class TestHddsSecureDatanodeInit {
   public void testSecureDnStartupCase3() throws Exception {
     // Case 3: When only public key and certificate is present.
     keyCodec.writePublicKey(publicKey);
-    certCodec.writeCertificate(certHolder);
+    writeCertificate();
     RuntimeException rteException = assertThrows(
         RuntimeException.class,
         () -> service.initializeCertificateClient(client));
@@ -261,7 +261,7 @@ public class TestHddsSecureDatanodeInit {
   @Test
   public void testSecureDnStartupCase5() throws Exception {
     // Case 5: If private key and certificate is present.
-    certCodec.writeCertificate(certHolder);
+    writeCertificate();
     keyCodec.writePrivateKey(privateKey);
     service.initializeCertificateClient(client);
     assertNotNull(client.getPrivateKey());
@@ -290,7 +290,7 @@ public class TestHddsSecureDatanodeInit {
     // Case 7 When keypair and certificate is present.
     keyCodec.writePublicKey(publicKey);
     keyCodec.writePrivateKey(privateKey);
-    certCodec.writeCertificate(certHolder);
+    writeCertificate();
 
     service.initializeCertificateClient(client);
     assertNotNull(client.getPrivateKey());
@@ -317,7 +317,7 @@ public class TestHddsSecureDatanodeInit {
   @Test
   public void testCertificateRotation() throws Exception {
     // save the certificate on dn
-    certCodec.writeCertificate(certHolder);
+    writeCertificate();
 
     Duration gracePeriod = securityConfig.getRenewalGracePeriod();
     X509CertificateHolder newCertHolder = generateX509CertHolder(null,
@@ -392,7 +392,7 @@ public class TestHddsSecureDatanodeInit {
   @Flaky("HDDS-8873")
   public void testCertificateRotationRecoverableFailure() throws Exception {
     // save the certificate on dn
-    certCodec.writeCertificate(certHolder);
+    writeCertificate();
 
     Duration gracePeriod = securityConfig.getRenewalGracePeriod();
     X509CertificateHolder newCertHolder = generateX509CertHolder(null,
@@ -463,5 +463,11 @@ public class TestHddsSecureDatanodeInit {
         .setConfiguration(securityConfig)
         .setScmID("test")
         .build();
+  }
+
+  private void writeCertificate() throws IOException {
+    String path = securityConfig.getCertificateLocation(DN_COMPONENT).toAbsolutePath().toString();
+    String certFileName = securityConfig.getCertificateFileName();
+    certCodec.writeCertificate(Paths.get(path, certFileName), CertificateCodec.getPEMEncodedString(certHolder));
   }
 }

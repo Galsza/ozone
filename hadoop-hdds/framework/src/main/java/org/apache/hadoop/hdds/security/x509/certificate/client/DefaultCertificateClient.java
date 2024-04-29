@@ -612,7 +612,8 @@ public abstract class DefaultCertificateClient implements CertificateClient {
         }
       }
 
-      codec.writeCertificate(certName, pemEncodedCert);
+      CertificateCodec.writeCertificate(
+          Paths.get(codec.getLocation().toAbsolutePath().toString(), certName), pemEncodedCert);
       if (addToCertMap) {
         certificateMap.put(cert.getSerialNumber().toString(), certificatePath);
         if (caType == CAType.SUBORDINATE) {
