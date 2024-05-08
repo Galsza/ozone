@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
+import java.security.cert.CertPath;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
@@ -378,7 +379,7 @@ final class TestSecureOzoneCluster {
       try (SCMSecurityProtocolClientSideTranslatorPB securityClient =
           getScmSecurityClient(conf, ugi)) {
         assertNotNull(securityClient);
-        String caCert = securityClient.getCACertificate();
+        CertPath caCert = securityClient.getCACertificate();
         assertNotNull(caCert);
         // Get some random certificate, used serial id 100 which will be
         // unavailable as our serial id is time stamp. Serial id 1 is root CA,
@@ -931,10 +932,9 @@ final class TestSecureOzoneCluster {
           .contains("Successfully stored OM signed certificate");
       X509Certificate certificate = om.getCertificateClient().getCertificate();
       validateCertificate(certificate);
-      String pemEncodedCACert =
+      CertPath pemEncodedCACert =
           scm.getSecurityProtocolServer().getCACertificate();
-      X509Certificate caCert =
-          CertificateCodec.getX509Certificate(pemEncodedCACert);
+      X509Certificate caCert = (X509Certificate) pemEncodedCACert.getCertificates().get(0);
       X509Certificate caCertStored = om.getCertificateClient()
           .getCertificate(caCert.getSerialNumber().toString());
       assertEquals(caCert, caCertStored);
@@ -983,7 +983,7 @@ final class TestSecureOzoneCluster {
         generateX509CertHolder(securityConfig, null,
             LocalDateTime.now().plus(securityConfig.getRenewalGracePeriod()),
             Duration.ofSeconds(certificateLifetime));
-    String pemCert = CertificateCodec.getPEMEncodedString(newCertHolder);
+    String pemCert = CertificateCodec.getPEMEncodedString(newCertHolder, CertificateCodec::toIOException);
     SCMGetCertResponseProto responseProto =
         SCMGetCertResponseProto.newBuilder()
             .setResponseCode(SCMSecurityProtocolProtos
@@ -1016,7 +1016,7 @@ final class TestSecureOzoneCluster {
       // second renewed cert
       newCertHolder = generateX509CertHolder(securityConfig,
           null, null, Duration.ofSeconds(certificateLifetime));
-      pemCert = CertificateCodec.getPEMEncodedString(newCertHolder);
+      pemCert = CertificateCodec.getPEMEncodedString(newCertHolder, CertificateCodec::toIOException);
       responseProto = SCMGetCertResponseProto.newBuilder()
           .setResponseCode(SCMSecurityProtocolProtos
               .SCMGetCertResponseProto.ResponseCode.success)
@@ -1068,7 +1068,7 @@ final class TestSecureOzoneCluster {
         securityConfig, null,
         LocalDateTime.now().plus(gracePeriod),
         Duration.ofSeconds(certificateLifetime));
-    String pemCert = CertificateCodec.getPEMEncodedString(newCertHolder);
+    String pemCert = CertificateCodec.getPEMEncodedString(newCertHolder, CertificateCodec::toIOException);
     // provide an invalid SCMGetCertResponseProto. Without
     // setX509CACertificate(pemCert), signAndStoreCert will throw exception.
     SCMSecurityProtocolProtos.SCMGetCertResponseProto responseProto =
@@ -1104,7 +1104,7 @@ final class TestSecureOzoneCluster {
       // provide a new valid SCMGetCertResponseProto
       newCertHolder = generateX509CertHolder(securityConfig, null, null,
           Duration.ofSeconds(certificateLifetime));
-      pemCert = CertificateCodec.getPEMEncodedString(newCertHolder);
+      pemCert = CertificateCodec.getPEMEncodedString(newCertHolder, CertificateCodec::toIOException);
       responseProto = SCMSecurityProtocolProtos.SCMGetCertResponseProto
           .newBuilder().setResponseCode(SCMSecurityProtocolProtos
               .SCMGetCertResponseProto.ResponseCode.success)

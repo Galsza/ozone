@@ -17,6 +17,7 @@
 package org.apache.hadoop.hdds.scm.protocol;
 
 import java.io.IOException;
+import java.security.cert.CertPath;
 import java.util.List;
 
 import org.apache.hadoop.hdds.protocol.SCMSecurityProtocol;
@@ -47,6 +48,7 @@ import org.apache.hadoop.hdds.scm.server.StorageContainerManager;
 import org.apache.hadoop.hdds.security.exception.SCMSecurityException;
 import org.apache.hadoop.hdds.security.x509.crl.CRLInfo;
 import org.apache.hadoop.hdds.server.OzoneProtocolMessageDispatcher;
+import org.apache.hadoop.hdds.utils.CertificateProtoConverter;
 import org.apache.hadoop.hdds.utils.ProtocolMessageMetrics;
 
 import com.google.protobuf.ProtocolMessageEnum;
@@ -210,12 +212,15 @@ public class SCMSecurityProtocolServerSideTranslatorPB
     String certificate = impl
         .getDataNodeCertificate(request.getDatanodeDetails(),
             request.getCSR());
+    CertPath caCertPath = impl.getCACertificate();
+
     SCMGetCertResponseProto.Builder builder =
         SCMGetCertResponseProto
             .newBuilder()
             .setResponseCode(ResponseCode.success)
-            .setX509Certificate(certificate)
-            .setX509CACertificate(impl.getCACertificate());
+            .setX509Certificate(certificate);
+    CertificateProtoConverter certificateProtoConverter = new CertificateProtoConverter(scm.getConfiguration());
+    certificateProtoConverter.setCaCertInProto(builder, caCertPath);
     setRootCAIfNeeded(builder);
 
     return builder.build();
@@ -233,14 +238,16 @@ public class SCMSecurityProtocolServerSideTranslatorPB
     String certificate = impl
         .getCertificate(request.getNodeDetails(),
             request.getCSR());
+    CertPath caCertPath = impl.getCACertificate();
+
     SCMGetCertResponseProto.Builder builder =
         SCMGetCertResponseProto
             .newBuilder()
             .setResponseCode(ResponseCode.success)
-            .setX509Certificate(certificate)
-            .setX509CACertificate(impl.getCACertificate());
+            .setX509Certificate(certificate);
+    CertificateProtoConverter converter = new CertificateProtoConverter(scm.getConfiguration());
+    converter.setCaCertInProto(builder, caCertPath);
     setRootCAIfNeeded(builder);
-
     return builder.build();
   }
 
@@ -283,12 +290,15 @@ public class SCMSecurityProtocolServerSideTranslatorPB
     String certificate = impl
         .getOMCertificate(request.getOmDetails(),
             request.getCSR());
+
+    CertPath caCertPath = impl.getCACertificate();
     SCMGetCertResponseProto.Builder builder =
         SCMGetCertResponseProto
             .newBuilder()
             .setResponseCode(ResponseCode.success)
-            .setX509Certificate(certificate)
-            .setX509CACertificate(impl.getCACertificate());
+            .setX509Certificate(certificate);
+    CertificateProtoConverter converter = new CertificateProtoConverter(scm.getConfiguration());
+    converter.setCaCertInProto(builder, caCertPath);
     setRootCAIfNeeded(builder);
     return builder.build();
 
@@ -311,13 +321,14 @@ public class SCMSecurityProtocolServerSideTranslatorPB
       SCMSecurityProtocolProtos.SCMGetCACertificateRequestProto request)
       throws IOException {
 
-    String certificate = impl.getCACertificate();
+    CertPath caCertPath = impl.getCACertificate();
     SCMGetCertResponseProto.Builder builder =
         SCMGetCertResponseProto
             .newBuilder()
-            .setResponseCode(ResponseCode.success)
-            .setX509Certificate(certificate)
-            .setX509CACertificate(certificate);
+            .setResponseCode(ResponseCode.success);
+    CertificateProtoConverter converter = new CertificateProtoConverter(scm.getConfiguration());
+    converter.setCertInProto(builder, caCertPath);
+    converter.setCaCertInProto(builder, caCertPath);
     setRootCAIfNeeded(builder);
     return builder.build();
 

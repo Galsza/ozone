@@ -91,7 +91,7 @@ message SCMSecurityResponse {
 }
 
 enum Type {
-    GetDataNodeCertificate = 1;
+     GetDataNodeCertificate = 1;
     GetOMCertificate = 2;
     GetCertificate = 3;
     GetCACertificate = 4;

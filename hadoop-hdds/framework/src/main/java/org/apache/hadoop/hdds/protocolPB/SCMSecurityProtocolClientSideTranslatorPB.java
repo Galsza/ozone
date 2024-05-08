@@ -19,11 +19,13 @@ package org.apache.hadoop.hdds.protocolPB;
 import java.io.Closeable;
 import java.io.IOException;
 import java.security.cert.CRLException;
+import java.security.cert.CertPath;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import org.apache.hadoop.hdds.conf.ConfigurationSource;
 import org.apache.hadoop.hdds.protocol.SCMSecurityProtocol;
 import org.apache.hadoop.hdds.protocol.proto.HddsProtos;
 import org.apache.hadoop.hdds.protocol.proto.HddsProtos.CRLInfoProto;
@@ -55,6 +57,7 @@ import org.apache.hadoop.hdds.scm.proxy.SCMSecurityProtocolFailoverProxyProvider
 import org.apache.hadoop.hdds.security.exception.SCMSecurityException;
 import org.apache.hadoop.hdds.security.x509.crl.CRLInfo;
 import org.apache.hadoop.hdds.tracing.TracingUtil;
+import org.apache.hadoop.hdds.utils.CertificateProtoConverter;
 import org.apache.hadoop.io.retry.RetryProxy;
 import org.apache.hadoop.ipc.ProtobufHelper;
 import org.apache.hadoop.ipc.ProtocolTranslator;
@@ -75,14 +78,16 @@ public class SCMSecurityProtocolClientSideTranslatorPB implements
    */
   private static final RpcController NULL_RPC_CONTROLLER = null;
   private final SCMSecurityProtocolPB rpcProxy;
+  private final ConfigurationSource config;
 
   public SCMSecurityProtocolClientSideTranslatorPB(
-      SCMSecurityProtocolFailoverProxyProvider failoverProxyProvider) {
+      SCMSecurityProtocolFailoverProxyProvider failoverProxyProvider, ConfigurationSource conf) {
     Objects.requireNonNull(failoverProxyProvider,
         "failoverProxyProvider == null");
     this.rpcProxy = (SCMSecurityProtocolPB) RetryProxy.create(
         SCMSecurityProtocolPB.class, failoverProxyProvider,
         failoverProxyProvider.getRetryPolicy());
+    this.config = conf;
   }
 
   /**
@@ -322,8 +327,8 @@ public class SCMSecurityProtocolClientSideTranslatorPB implements
    * @return serial   - Root certificate.
    */
   @Override
-  public String getCACertificate() throws IOException {
-    return getCACert().getX509Certificate();
+  public CertPath getCACertificate() throws IOException {
+    return new CertificateProtoConverter(config).getCertFromProto(getCACert());
   }
 
   public SCMGetCertResponseProto getCACert() throws IOException {

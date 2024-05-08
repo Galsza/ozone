@@ -427,11 +427,11 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
    * @return string         - Root certificate.
    */
   @Override
-  public String getCACertificate() throws IOException {
+  public CertPath getCACertificate() throws IOException {
     LOGGER.debug("Getting CA certificate.");
     try {
-      return getPEMEncodedString(
-          scmCertificateServer.getCaCertPath());
+      return
+          scmCertificateServer.getCaCertPath();
     } catch (CertificateException e) {
       throw new SCMSecurityException("getRootCertificate operation failed. ",
           e, GET_CA_CERT_FAILED);
@@ -479,7 +479,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
     if (rootCertificateServer != null) {
       try {
         return CertificateCodec.getPEMEncodedString(
-            rootCertificateServer.getCACertificate());
+            rootCertificateServer.getCACertificate(), CertificateCodec::toIOException);
       } catch (CertificateException e) {
         LOGGER.error("Failed to get root CA certificate", e);
         throw new IOException("Failed to get root CA certificate", e);

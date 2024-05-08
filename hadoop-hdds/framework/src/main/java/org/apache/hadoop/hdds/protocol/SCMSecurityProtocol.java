@@ -17,6 +17,7 @@
 package org.apache.hadoop.hdds.protocol;
 
 import java.io.IOException;
+import java.security.cert.CertPath;
 import java.util.List;
 
 import org.apache.hadoop.hdds.annotation.InterfaceAudience;
@@ -105,7 +106,7 @@ public interface SCMSecurityProtocol {
    *
    * @return String         - pem encoded CA certificate.
    */
-  String getCACertificate() throws IOException;
+  CertPath getCACertificate() throws IOException;
 
   /**
    * Get list of certificates meet the query criteria.

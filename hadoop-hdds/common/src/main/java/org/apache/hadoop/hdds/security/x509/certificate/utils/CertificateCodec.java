@@ -127,7 +127,19 @@ public class CertificateCodec {
    * @return PEM Encoded Certificate String.
    * @throws SCMSecurityException - On failure to create a PEM String.
    */
-  public static String getPEMEncodedString(X509CertificateHolder x509CertHolder)
+  public static <E extends Exception> String getPEMEncodedString(X509CertificateHolder x509CertHolder,
+                                                                 Function<CertificateException, E> convertor) {
+    try {
+      return getPEMEncodedString(getX509Certificate(x509CertHolder));
+    } catch (CertificateException exp) {
+      convertor.apply(exp);
+    } catch (SCMSecurityException e) {
+      throw new RuntimeException(e);
+    }
+    return null;
+  }
+
+  public static <E extends Exception> String getPEMEncodedString(X509CertificateHolder x509CertHolder)
       throws SCMSecurityException {
     try {
       return getPEMEncodedString(getX509Certificate(x509CertHolder));
@@ -250,7 +262,7 @@ public class CertificateCodec {
    */
   public void writeCertificate(X509CertificateHolder xCertificate)
       throws SCMSecurityException, IOException {
-    String pem = getPEMEncodedString(xCertificate);
+    String pem = getPEMEncodedString(xCertificate, CertificateCodec::toIOException);
     writeCertificate(location.toAbsolutePath(),
         this.securityConfig.getCertificateFileName(), pem);
   }
@@ -265,7 +277,7 @@ public class CertificateCodec {
    */
   public void writeCertificate(X509CertificateHolder xCertificate,
       String fileName) throws IOException {
-    String pem = getPEMEncodedString(xCertificate);
+    String pem = getPEMEncodedString(xCertificate, CertificateCodec::toIOException);
     writeCertificate(location.toAbsolutePath(), fileName, pem);
   }
 
@@ -310,6 +322,18 @@ public class CertificateCodec {
     return generateCertPathFromInputStream(
         new ByteArrayInputStream(pemString.getBytes(DEFAULT_CHARSET)));
   }
+
+  public static <E extends Exception> CertPath getCertPathFromPemEncodedString(
+      String pemString, Function<CertificateException, E> convertor) {
+    try {
+      return generateCertPathFromInputStream(
+          new ByteArrayInputStream(pemString.getBytes(DEFAULT_CHARSET)));
+    } catch (CertificateException e) {
+      convertor.apply(e);
+    }
+    return null;
+  }
+
 
   private CertPath getCertPath(Path path, String fileName) throws IOException,
       CertificateException {

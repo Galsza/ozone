@@ -219,7 +219,7 @@ public final class HASecurityUtils {
 
     return new SCMSecurityProtocolClientSideTranslatorPB(
         new SCMSecurityProtocolFailoverProxyProvider(conf,
-            UserGroupInformation.getCurrentUser()));
+            UserGroupInformation.getCurrentUser()), conf);
 
   }
 

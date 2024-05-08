@@ -453,7 +453,7 @@ public final class HddsServerUtil {
       ConfigurationSource conf) throws IOException {
     return new SCMSecurityProtocolClientSideTranslatorPB(
         new SCMSecurityProtocolFailoverProxyProvider(conf,
-            UserGroupInformation.getCurrentUser()));
+            UserGroupInformation.getCurrentUser()), conf);
   }
 
   public static SCMSecurityProtocolClientSideTranslatorPB
@@ -471,7 +471,7 @@ public final class HddsServerUtil {
 
     return new SCMSecurityProtocolClientSideTranslatorPB(
         new SCMSecurityProtocolFailoverProxyProvider(configuration,
-            ugi == null ? UserGroupInformation.getCurrentUser() : ugi));
+            ugi == null ? UserGroupInformation.getCurrentUser() : ugi), configuration);
   }
 
   /**
@@ -484,7 +484,7 @@ public final class HddsServerUtil {
       OzoneConfiguration conf, UserGroupInformation ugi) throws IOException {
     SCMSecurityProtocolClientSideTranslatorPB scmSecurityClient =
         new SCMSecurityProtocolClientSideTranslatorPB(
-            new SCMSecurityProtocolFailoverProxyProvider(conf, ugi));
+            new SCMSecurityProtocolFailoverProxyProvider(conf, ugi), conf);
     return TracingUtil.createProxy(scmSecurityClient,
         SCMSecurityProtocolClientSideTranslatorPB.class, conf);
   }
