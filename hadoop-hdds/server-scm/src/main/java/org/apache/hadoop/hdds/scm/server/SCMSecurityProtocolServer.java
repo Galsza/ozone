@@ -54,11 +54,13 @@ import org.apache.hadoop.hdds.protocolPB.SecretKeyProtocolScmPB;
 import org.apache.hadoop.hdds.scm.exceptions.SCMException.ResultCodes;
 import org.apache.hadoop.hdds.scm.ha.SequenceIdGenerator;
 import org.apache.hadoop.hdds.scm.protocol.SecretKeyProtocolServerSideTranslatorPB;
+import org.apache.hadoop.hdds.scm.security.RootCARotationManager;
 import org.apache.hadoop.hdds.scm.update.server.SCMUpdateServiceGrpcServer;
 import org.apache.hadoop.hdds.scm.update.client.UpdateServiceConfig;
 import org.apache.hadoop.hdds.scm.update.server.SCMCRLStore;
 import org.apache.hadoop.hdds.scm.exceptions.SCMException;
 import org.apache.hadoop.hdds.scm.protocol.SCMSecurityProtocolServerSideTranslatorPB;
+import org.apache.hadoop.hdds.security.SecurityConfig;
 import org.apache.hadoop.hdds.security.exception.SCMSecretKeyException;
 import org.apache.hadoop.hdds.security.exception.SCMSecurityException;
 import org.apache.hadoop.hdds.security.symmetric.ManagedSecretKey;
@@ -85,7 +87,6 @@ import org.slf4j.LoggerFactory;
 
 import jakarta.annotation.Nullable;
 
-import static org.apache.hadoop.hdds.scm.ScmUtils.checkIfCertSignRequestAllowed;
 import static org.apache.hadoop.hdds.scm.ha.SequenceIdGenerator.CERTIFICATE_ID;
 import static org.apache.hadoop.hdds.security.exception.SCMSecretKeyException.ErrorCode.SECRET_KEY_NOT_ENABLED;
 import static org.apache.hadoop.hdds.security.exception.SCMSecretKeyException.ErrorCode.SECRET_KEY_NOT_INITIALIZED;
@@ -116,7 +117,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
   private final ProtocolMessageMetrics secretKeyMetrics;
   private final StorageContainerManager storageContainerManager;
   private final CertificateClient scmCertificateClient;
-  private final OzoneConfiguration config;
+  private final SecurityConfig config;
   private final SequenceIdGenerator sequenceIdGen;
 
   // SecretKey may not be enabled when neither block token nor container
@@ -134,7 +135,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
     this.rootCertificateServer = rootCertificateServer;
     this.scmCertificateServer = scmCertificateServer;
     this.scmCertificateClient = scmCertClient;
-    this.config = conf;
+    this.config = new SecurityConfig(conf);
     this.sequenceIdGen = scm.getSequenceIdGen();
     this.secretKeyManager = secretKeyManager;
     final int handlerCount =
@@ -185,6 +186,26 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
         new SCMCRLStore(scmCertificateServer));
   }
 
+  public void checkIfCertSignRequestAllowed(
+      RootCARotationManager rotationManager, boolean isScmCertRenew, String operation) throws SCMException {
+    if (rotationManager != null) {
+      if (rotationManager.isRotationInProgress() && !isScmCertRenew) {
+        throw new SCMException("Root CA and Sub CA rotation is in-progress." +
+            " Please try the operation later again.",
+            ResultCodes.CA_ROTATION_IN_PROGRESS);
+      }
+      if (rotationManager.isPostRotationInProgress()) {
+        throw new SCMException("The operation " + operation +
+            " is prohibited due to root CA " +
+            "and sub CA rotation have just finished. " +
+            "The prohibition state will last at most " +
+            config.getRootCaCertificatePollingInterval() + ". " +
+            "Please try the operation later again.",
+            ResultCodes.CA_ROTATION_IN_POST_PROGRESS);
+      }
+    }
+  }
+
   /**
    * Get SCM signed certificate for DataNode.
    *
@@ -200,8 +221,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
     Objects.requireNonNull(dnDetails);
 
     checkIfCertSignRequestAllowed(
-        storageContainerManager.getRootCARotationManager(), false, config,
-        "getDataNodeCertificate");
+        storageContainerManager.getRootCARotationManager(), false, "getDataNodeCertificate");
 
     return getEncodedCertToString(certSignReq, NodeType.DATANODE);
   }
@@ -216,8 +236,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
     Objects.requireNonNull(nodeDetails);
 
     checkIfCertSignRequestAllowed(
-        storageContainerManager.getRootCARotationManager(), false, config,
-        "getCertificate");
+        storageContainerManager.getRootCARotationManager(), false, "getCertificate");
 
     return getEncodedCertToString(certSignReq, nodeDetails.getNodeType());
   }
@@ -294,9 +313,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
         omDetails.getUuid());
     Objects.requireNonNull(omDetails);
 
-    checkIfCertSignRequestAllowed(
-        storageContainerManager.getRootCARotationManager(), false, config,
-        "getOMCertificate");
+    checkIfCertSignRequestAllowed(storageContainerManager.getRootCARotationManager(), false, "getOMCertificate");
 
     return getEncodedCertToString(certSignReq, NodeType.OM);
   }
@@ -335,7 +352,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
     }
 
     checkIfCertSignRequestAllowed(
-        storageContainerManager.getRootCARotationManager(), isRenew, config,
+        storageContainerManager.getRootCARotationManager(), isRenew,
         "getSCMCertificate");
 
     LOGGER.info("Processing CSR for scm {}, nodeId: {}",
