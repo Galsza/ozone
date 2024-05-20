@@ -398,9 +398,10 @@ public class TestDefaultCertificateClient {
         dnSecurityConfig.getKeyLocation(DN_COMPONENT).toString(),
         dnSecurityConfig.getCertificateFileName()).toFile());
 
+    CertificateCodec certificateCodec = dnSecurityConfig.getCertificateCodec();
     CertificateCodec.writeCertificate(Paths.get(dnSecurityConfig.getCertificateLocation(DN_COMPONENT).toString(),
-        dnSecurityConfig.getCertificateFileName()), CertificateCodec.getPEMEncodedString(new X509CertificateHolder(
-        x509Certificate.getEncoded())));
+            dnSecurityConfig.getCertificateFileName()),
+        certificateCodec.getPEMEncodedString(x509Certificate));
     // Check for DN.
     assertEquals(FAILURE, dnCertClient.init());
     assertThat(dnClientLog.getOutput()).contains("Keypair validation failed");
@@ -459,10 +460,11 @@ public class TestDefaultCertificateClient {
   @Test
   public void testRenewAndStoreKeyAndCertificate() throws Exception {
     // save the certificate on dn
+    CertificateCodec certificateCodec = dnSecurityConfig.getCertificateCodec();
     CertificateCodec.writeCertificate(Paths.get(
             dnSecurityConfig.getCertificateLocation(DN_COMPONENT).toAbsolutePath().toString(),
             dnSecurityConfig.getCertificateFileName()),
-        CertificateCodec.getPEMEncodedString(new X509CertificateHolder(x509Certificate.getEncoded())));
+        certificateCodec.getPEMEncodedString(x509Certificate));
 
     X509Certificate newCert = generateX509Cert(null);
     String pemCert = CertificateCodec.getPEMEncodedString(newCert);
@@ -548,7 +550,7 @@ public class TestDefaultCertificateClient {
 
     X509Certificate cert = generateX509Cert(null);
     X509CertificateHolder xCertificate = new X509CertificateHolder(cert.getEncoded());
-    String certPem = getPEMEncodedString(xCertificate);
+    String certPem = conf.getCertificateCodec().getPEMEncodedString(xCertificate);
     CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(conf, compName), certPem);
 
     Logger logger = mock(Logger.class);

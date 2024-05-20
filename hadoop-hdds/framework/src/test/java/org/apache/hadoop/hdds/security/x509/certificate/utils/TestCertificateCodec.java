@@ -80,13 +80,13 @@ public class TestCertificateCodec {
       IOException, SCMSecurityException, CertificateException {
     X509CertificateHolder cert =
         generateTestCert();
-    String pemString = CertificateCodec.getPEMEncodedString(cert);
+    String pemString = securityConfig.getCertificateCodec().getPEMEncodedString(cert);
     assertTrue(pemString.startsWith(CertificateCodec.BEGIN_CERT));
     assertTrue(pemString.endsWith(CertificateCodec.END_CERT + "\n"));
 
     // Read back the certificate and verify that all the comparisons pass.
-    X509CertificateHolder newCert = CertificateCodec.getCertificateHolder(
-        CertificateCodec.getX509Certificate(pemString));
+    X509CertificateHolder newCert = new X509CertificateHolder(
+        CertificateCodec.getX509Certificate(pemString).getEncoded());
     assertEquals(cert, newCert);
 
     // Just make sure we can decode both these classes to Java Std. lIb classes.
@@ -110,7 +110,8 @@ public class TestCertificateCodec {
     CertPath pathToEncode =
         certificateFactory.engineGenerateCertPath(ImmutableList.of(cert1,
             cert2));
-    String encodedPath = CertificateCodec.getPEMEncodedString(pathToEncode);
+    CertificateCodec codec = new CertificateCodec(securityConfig, "");
+    String encodedPath = codec.getPEMEncodedString(pathToEncode);
     CertPath certPathDecoded =
         CertificateCodec.getCertPathFromPemEncodedString(encodedPath);
     assertEquals(cert1, certPathDecoded.getCertificates().get(0));
@@ -131,7 +132,7 @@ public class TestCertificateCodec {
     X509Certificate prependedCert =
         CertificateCodec.getX509Certificate(prependedHolder);
     CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
-        CertificateCodec.getPEMEncodedString(initialHolder));
+        securityConfig.getCertificateCodec().getPEMEncodedString(initialHolder));
     CertPath initialPath = codec.getCertPath();
     CertPath pathWithPrependedCert =
         codec.prependCertToCertPath(prependedHolder, initialPath);
@@ -156,7 +157,7 @@ public class TestCertificateCodec {
     X509CertificateHolder cert =
         generateTestCert();
     CertificateCodec codec = new CertificateCodec(securityConfig, COMPONENT);
-    String pemString = CertificateCodec.getPEMEncodedString(cert);
+    String pemString = securityConfig.getCertificateCodec().getPEMEncodedString(cert);
     Path path = Paths.get(basePath.toString(), "pemcertificate.crt");
     CertificateCodec.writeCertificate(path, pemString);
     X509CertificateHolder certHolder =
@@ -182,7 +183,7 @@ public class TestCertificateCodec {
     X509CertificateHolder cert = generateTestCert();
     CertificateCodec codec = new CertificateCodec(securityConfig, COMPONENT);
     CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
-        CertificateCodec.getPEMEncodedString(cert));
+        securityConfig.getCertificateCodec().getPEMEncodedString(cert));
     X509CertificateHolder certHolder = codec.getTargetCertHolder();
     assertNotNull(certHolder);
     assertEquals(cert.getSerialNumber(), certHolder.getSerialNumber());
@@ -244,7 +245,7 @@ public class TestCertificateCodec {
 
     String certFileName = "newcert.crt";
     String pemEncodedStrings =
-        CertificateCodec.getPEMEncodedString(updatedCertPath);
+        codec.getPEMEncodedString(updatedCertPath);
     CertificateCodec.writeCertificate(Paths.get(codec.getLocation().toAbsolutePath().toString(), certFileName),
         pemEncodedStrings);
 
@@ -254,10 +255,8 @@ public class TestCertificateCodec {
     //Then the two certificates are the same as before
     Certificate rereadPrependedCert = rereadCertPath.getCertificates().get(0);
     Certificate rereadSecondCert = rereadCertPath.getCertificates().get(1);
-    assertEquals(CertificateCodec.getCertificateHolder(
-        (X509Certificate) rereadPrependedCert), certToPrepend);
-    assertEquals(CertificateCodec.getCertificateHolder(
-        (X509Certificate) rereadSecondCert), initialCert);
+    assertEquals(new X509CertificateHolder((rereadPrependedCert).getEncoded()), certToPrepend);
+    assertEquals(new X509CertificateHolder((rereadSecondCert).getEncoded()), initialCert);
   }
 
   private X509CertificateHolder generateTestCert()

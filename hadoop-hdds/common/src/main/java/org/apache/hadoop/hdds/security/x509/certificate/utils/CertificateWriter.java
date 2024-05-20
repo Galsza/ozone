@@ -33,7 +33,7 @@ public final class CertificateWriter {
 
   public static void writeCertificate(SecurityConfig config, String componentName, X509CertificateHolder certificate)
       throws IOException {
-    String pem = CertificateCodec.getPEMEncodedString(certificate);
+    String pem = config.getCertificateCodec().getPEMEncodedString(certificate);
     String certDir = config.getCertificateLocation(componentName).toAbsolutePath().toString();
     Path certFilePath = Paths.get(certDir, config.getCertificateFileName());
     CertificateCodec.writeCertificate(certFilePath, pem);

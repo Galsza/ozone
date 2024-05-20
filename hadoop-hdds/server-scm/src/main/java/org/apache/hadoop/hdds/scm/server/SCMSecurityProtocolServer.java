@@ -66,13 +66,13 @@ import org.apache.hadoop.hdds.security.exception.SCMSecurityException;
 import org.apache.hadoop.hdds.security.symmetric.ManagedSecretKey;
 import org.apache.hadoop.hdds.security.symmetric.SecretKeyManager;
 import org.apache.hadoop.hdds.security.x509.certificate.client.CertificateClient;
+import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
 import org.apache.hadoop.hdds.security.x509.crl.CRLInfo;
 import org.apache.hadoop.hdds.utils.HddsServerUtil;
 import org.apache.hadoop.hdds.scm.ScmConfig;
 import org.apache.hadoop.hdds.scm.ScmConfigKeys;
 import org.apache.hadoop.hdds.protocol.SCMSecurityProtocol;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.CertificateServer;
-import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
 import org.apache.hadoop.hdds.utils.ProtocolMessageMetrics;
 import org.apache.hadoop.ipc.ProtobufRpcEngine;
 import org.apache.hadoop.ipc.RPC;
@@ -220,8 +220,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
         dnDetails.getUuid());
     Objects.requireNonNull(dnDetails);
 
-    checkIfCertSignRequestAllowed(
-        storageContainerManager.getRootCARotationManager(), false, "getDataNodeCertificate");
+    checkIfCertSignRequestAllowed(storageContainerManager.getRootCARotationManager(), false, "getDataNodeCertificate");
 
     return getEncodedCertToString(certSignReq, NodeType.DATANODE);
   }
@@ -493,9 +492,10 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
   @Override
   public synchronized String getRootCACertificate() throws IOException {
     LOGGER.debug("Getting Root CA certificate.");
+    CertificateCodec certificateCodec = config.getCertificateCodec();
     if (rootCertificateServer != null) {
       try {
-        return CertificateCodec.getPEMEncodedString(
+        return certificateCodec.getPEMEncodedString(
             rootCertificateServer.getCACertificate());
       } catch (CertificateException e) {
         LOGGER.error("Failed to get root CA certificate", e);
@@ -503,7 +503,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
       }
     }
 
-    return CertificateCodec.getPEMEncodedString(
+    return certificateCodec.getPEMEncodedString(
         scmCertificateClient.getCACertificate());
   }
 
@@ -543,7 +543,8 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
     List<String> pemEncodedCerts = new ArrayList<>();
     for (X509Certificate cert : storageContainerManager.getCertificateStore()
         .removeAllExpiredCertificates()) {
-      pemEncodedCerts.add(CertificateCodec.getPEMEncodedString(cert));
+      CertificateCodec certificateCodec = config.getCertificateCodec();
+      pemEncodedCerts.add(certificateCodec.getPEMEncodedString(cert));
     }
     return pemEncodedCerts;
   }

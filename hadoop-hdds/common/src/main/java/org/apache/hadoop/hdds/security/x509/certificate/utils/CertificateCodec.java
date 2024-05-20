@@ -127,7 +127,7 @@ public class CertificateCodec {
    * @return PEM Encoded Certificate String.
    * @throws SCMSecurityException - On failure to create a PEM String.
    */
-  public static String getPEMEncodedString(X509CertificateHolder x509CertHolder)
+  public String getPEMEncodedString(X509CertificateHolder x509CertHolder)
       throws SCMSecurityException {
     try {
       return getPEMEncodedString(getX509Certificate(x509CertHolder));

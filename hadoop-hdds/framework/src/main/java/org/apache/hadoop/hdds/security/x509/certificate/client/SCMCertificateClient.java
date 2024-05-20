@@ -354,15 +354,15 @@ public class SCMCertificateClient extends DefaultCertificateClient {
           getSecurityConfig(), null, BigInteger.ONE,
           new DefaultCAProfile(), SCM_ROOT_CA_COMPONENT_NAME);
       CertPath rootCACertificatePath = rootCAServer.getCaCertPath();
-      String pemEncodedRootCert =
-          CertificateCodec.getPEMEncodedString(rootCACertificatePath);
+      CertificateCodec certificateCodec = getSecurityConfig().getCertificateCodec();
+      String pemEncodedRootCert = certificateCodec.getPEMEncodedString(rootCACertificatePath);
 
       PKCS10CertificationRequest csr = getCSRBuilder().build();
       CertPath subSCMCertHolderList = rootCAServer.requestCertificate(
           csr, KERBEROS_TRUSTED, SCM,
-              BigInteger.ONE.add(BigInteger.ONE).toString()).get();
+          BigInteger.ONE.add(BigInteger.ONE).toString()).get();
       String pemEncodedCert =
-          CertificateCodec.getPEMEncodedString(subSCMCertHolderList);
+          certificateCodec.getPEMEncodedString(subSCMCertHolderList);
 
       storeCertificate(pemEncodedRootCert, CAType.SUBORDINATE);
       storeCertificate(pemEncodedCert, CAType.NONE);
