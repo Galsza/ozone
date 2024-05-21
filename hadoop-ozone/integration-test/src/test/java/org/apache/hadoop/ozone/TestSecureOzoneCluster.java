@@ -1058,7 +1058,7 @@ final class TestSecureOzoneCluster {
         null, Duration.ofSeconds(certificateLifetime));
     String certId = certHolder.getSerialNumber().toString();
     CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, "om"),
-        securityConfig.getCertificateCodec().getPEMEncodedString(certHolder));
+        securityConfig.getCertificateCodec(om.getComponent()).getPEMEncodedString(certHolder));
     omStorage.setOmCertSerialId(certId);
     omStorage.forceInitialize();
 
@@ -1071,7 +1071,7 @@ final class TestSecureOzoneCluster {
         securityConfig, null,
         LocalDateTime.now().plus(gracePeriod),
         Duration.ofSeconds(certificateLifetime));
-    String pemCert = securityConfig.getCertificateCodec().getPEMEncodedString(newCertHolder);
+    String pemCert = securityConfig.getCertificateCodec(om.getComponent()).getPEMEncodedString(newCertHolder);
     // provide an invalid SCMGetCertResponseProto. Without
     // setX509CACertificate(pemCert), signAndStoreCert will throw exception.
     SCMSecurityProtocolProtos.SCMGetCertResponseProto responseProto =
@@ -1107,7 +1107,7 @@ final class TestSecureOzoneCluster {
       // provide a new valid SCMGetCertResponseProto
       newCertHolder = generateX509CertHolder(securityConfig, null, null,
           Duration.ofSeconds(certificateLifetime));
-      pemCert = securityConfig.getCertificateCodec().getPEMEncodedString(newCertHolder);
+      pemCert = securityConfig.getCertificateCodec(om.getComponent()).getPEMEncodedString(newCertHolder);
       responseProto = SCMSecurityProtocolProtos.SCMGetCertResponseProto
           .newBuilder().setResponseCode(SCMSecurityProtocolProtos
               .SCMGetCertResponseProto.ResponseCode.success)
@@ -1152,7 +1152,7 @@ final class TestSecureOzoneCluster {
           null, Duration.ofSeconds(certificateLifetime));
       String certId = certHolder.getSerialNumber().toString();
       CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, "om"),
-          securityConfig.getCertificateCodec().getPEMEncodedString(certHolder));
+          securityConfig.getCertificateCodec(om.getComponent()).getPEMEncodedString(certHolder));
       omStorage.setOmCertSerialId(certId);
       omStorage.forceInitialize();
 
@@ -1299,7 +1299,7 @@ final class TestSecureOzoneCluster {
       String certId = certHolder.getSerialNumber().toString();
       String codecPath = securityConfig.getLocation("om").toAbsolutePath().toString();
       CertificateCodec.writeCertificate(Paths.get(codecPath, securityConfig.getCertificateFileName()),
-          securityConfig.getCertificateCodec().getPEMEncodedString(certHolder));
+          securityConfig.getCertificateCodec(om.getComponent()).getPEMEncodedString(certHolder));
       CertificateCodec.writeCertificate(Paths.get(codecPath,
               String.format(DefaultCertificateClient.CERT_FILE_NAME_FORMAT,
                   CAType.SUBORDINATE.getFileNamePrefix() +

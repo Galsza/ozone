@@ -141,7 +141,6 @@ public class SecurityConfig {
   private final Duration rootCaCertificatePollingInterval;
   private final boolean autoCARotationEnabled;
   private final Duration expiredCertificateCheckInterval;
-  private final CertificateCodec certificateCodec;
 
   /**
    * Constructs a SecurityConfig.
@@ -283,7 +282,6 @@ public class SecurityConfig {
         }
       }
     }
-    this.certificateCodec = new CertificateCodec(this, "");
   }
 
   /**
@@ -624,7 +622,7 @@ public class SecurityConfig {
     return blockTokenEnabled || containerTokenEnabled;
   }
 
-  public CertificateCodec getCertificateCodec() {
-    return certificateCodec;
+  public CertificateCodec getCertificateCodec(String componentName) {
+    return new CertificateCodec(this, componentName);
   }
 }

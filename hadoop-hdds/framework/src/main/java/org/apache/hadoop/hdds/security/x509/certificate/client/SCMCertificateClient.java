@@ -354,7 +354,7 @@ public class SCMCertificateClient extends DefaultCertificateClient {
           getSecurityConfig(), null, BigInteger.ONE,
           new DefaultCAProfile(), SCM_ROOT_CA_COMPONENT_NAME);
       CertPath rootCACertificatePath = rootCAServer.getCaCertPath();
-      CertificateCodec certificateCodec = getSecurityConfig().getCertificateCodec();
+      CertificateCodec certificateCodec = getSecurityConfig().getCertificateCodec(getComponentName());
       String pemEncodedRootCert = certificateCodec.getPEMEncodedString(rootCACertificatePath);
 
       PKCS10CertificationRequest csr = getCSRBuilder().build();

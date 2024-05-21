@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 package org.apache.hadoop.hdds.security.x509.certificate.utils;
+/*
 
 import org.apache.hadoop.hdds.security.SecurityConfig;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -23,7 +24,7 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+*/
 /**
  * Temporary class not sure of the usage.
  */
@@ -31,11 +32,11 @@ public final class CertificateWriter {
   private CertificateWriter() {
   }
 
-  public static void writeCertificate(SecurityConfig config, String componentName, X509CertificateHolder certificate)
+  /*public static void writeCertificate(SecurityConfig config, String componentName, X509CertificateHolder certificate)
       throws IOException {
     String pem = config.getCertificateCodec().getPEMEncodedString(certificate);
     String certDir = config.getCertificateLocation(componentName).toAbsolutePath().toString();
     Path certFilePath = Paths.get(certDir, config.getCertificateFileName());
     CertificateCodec.writeCertificate(certFilePath, pem);
-  }
+  }*/
 }

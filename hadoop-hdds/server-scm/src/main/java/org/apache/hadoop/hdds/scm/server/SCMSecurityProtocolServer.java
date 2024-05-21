@@ -492,7 +492,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
   @Override
   public synchronized String getRootCACertificate() throws IOException {
     LOGGER.debug("Getting Root CA certificate.");
-    CertificateCodec certificateCodec = config.getCertificateCodec();
+    CertificateCodec certificateCodec = config.getCertificateCodec(scmCertificateClient.getComponentName());
     if (rootCertificateServer != null) {
       try {
         return certificateCodec.getPEMEncodedString(
@@ -543,7 +543,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
     List<String> pemEncodedCerts = new ArrayList<>();
     for (X509Certificate cert : storageContainerManager.getCertificateStore()
         .removeAllExpiredCertificates()) {
-      CertificateCodec certificateCodec = config.getCertificateCodec();
+      CertificateCodec certificateCodec = config.getCertificateCodec(scmCertificateClient.getComponentName());
       pemEncodedCerts.add(certificateCodec.getPEMEncodedString(cert));
     }
     return pemEncodedCerts;

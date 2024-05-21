@@ -578,7 +578,7 @@ public class DefaultCAServer implements CertificateServer {
 
     builder.addInetAddresses();
     X509CertificateHolder selfSignedCertificate = builder.build();
-    String pemString = securityConfig.getCertificateCodec().getPEMEncodedString(selfSignedCertificate);
+    String pemString = securityConfig.getCertificateCodec(componentName).getPEMEncodedString(selfSignedCertificate);
     CertificateCodec.writeCertificate(
         Paths.get(config.getCertificateLocation(componentName).toAbsolutePath().toString(),
             config.getCertificateFileName()), pemString);
@@ -591,7 +591,7 @@ public class DefaultCAServer implements CertificateServer {
     String externalPublicKeyLocation = conf.getExternalRootCaPublicKeyPath();
 
     KeyCodec keyCodec = new KeyCodec(config, componentName);
-    CertificateCodec certificateCodec = conf.getCertificateCodec();
+    CertificateCodec certificateCodec = conf.getCertificateCodec(componentName);
     try {
       Path extCertParent = extCertPath.getParent();
       Path extCertName = extCertPath.getFileName();

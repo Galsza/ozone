@@ -159,7 +159,7 @@ public class TestRootCertificate {
     assertEquals(BigInteger.ONE, certificateHolder.getSerialNumber());
 
     CertificateCodec codec = new CertificateCodec(securityConfig, "scm");
-    String pemString = securityConfig.getCertificateCodec().getPEMEncodedString(certificateHolder);
+    String pemString = codec.getPEMEncodedString(certificateHolder);
 
     CertificateCodec.writeCertificate(Paths.get(basePath.toString(), "pemcertificate.crt"),
         pemString);

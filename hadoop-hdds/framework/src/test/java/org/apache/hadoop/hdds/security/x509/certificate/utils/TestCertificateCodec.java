@@ -80,7 +80,7 @@ public class TestCertificateCodec {
       IOException, SCMSecurityException, CertificateException {
     X509CertificateHolder cert =
         generateTestCert();
-    String pemString = securityConfig.getCertificateCodec().getPEMEncodedString(cert);
+    String pemString = securityConfig.getCertificateCodec("test").getPEMEncodedString(cert);
     assertTrue(pemString.startsWith(CertificateCodec.BEGIN_CERT));
     assertTrue(pemString.endsWith(CertificateCodec.END_CERT + "\n"));
 
@@ -132,7 +132,7 @@ public class TestCertificateCodec {
     X509Certificate prependedCert =
         CertificateCodec.getX509Certificate(prependedHolder);
     CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
-        securityConfig.getCertificateCodec().getPEMEncodedString(initialHolder));
+        securityConfig.getCertificateCodec("test").getPEMEncodedString(initialHolder));
     CertPath initialPath = codec.getCertPath();
     CertPath pathWithPrependedCert =
         codec.prependCertToCertPath(prependedHolder, initialPath);
@@ -157,7 +157,7 @@ public class TestCertificateCodec {
     X509CertificateHolder cert =
         generateTestCert();
     CertificateCodec codec = new CertificateCodec(securityConfig, COMPONENT);
-    String pemString = securityConfig.getCertificateCodec().getPEMEncodedString(cert);
+    String pemString = codec.getPEMEncodedString(cert);
     Path path = Paths.get(basePath.toString(), "pemcertificate.crt");
     CertificateCodec.writeCertificate(path, pemString);
     X509CertificateHolder certHolder =
@@ -183,7 +183,7 @@ public class TestCertificateCodec {
     X509CertificateHolder cert = generateTestCert();
     CertificateCodec codec = new CertificateCodec(securityConfig, COMPONENT);
     CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
-        securityConfig.getCertificateCodec().getPEMEncodedString(cert));
+        codec.getPEMEncodedString(cert));
     X509CertificateHolder certHolder = codec.getTargetCertHolder();
     assertNotNull(certHolder);
     assertEquals(cert.getSerialNumber(), certHolder.getSerialNumber());

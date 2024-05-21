@@ -258,7 +258,7 @@ public class TestCRLCodec {
             .makeCA()
             .build();
     
-    String pemString = securityConfig.getCertificateCodec().getPEMEncodedString(cert);
+    String pemString = securityConfig.getCertificateCodec("test").getPEMEncodedString(cert);
     basePath = new File(
         String.valueOf(
             securityConfig.getCertificateLocation("scm")));
