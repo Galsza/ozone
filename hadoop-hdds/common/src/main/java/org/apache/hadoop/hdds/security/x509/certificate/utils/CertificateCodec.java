@@ -323,8 +323,7 @@ public class CertificateCodec {
    * The remaining certificates are ignored.
    */
   public X509Certificate getTargetCert() throws CertificateException, IOException {
-    return getTargetCert(
-        location, securityConfig.getCertificateFileName());
+    return getTargetCert(location, securityConfig.getCertificateFileName());
   }
 
   private static CertPath generateCertPathFromInputStream(InputStream inputStream) throws CertificateException {
