@@ -625,4 +625,8 @@ public class SecurityConfig {
   public CertificateCodec getCertificateCodec(String componentName) {
     return new CertificateCodec(this, componentName);
   }
+
+  public CertificateCodec getCertificateCodec() {
+    return new CertificateCodec(this);
+  }
 }

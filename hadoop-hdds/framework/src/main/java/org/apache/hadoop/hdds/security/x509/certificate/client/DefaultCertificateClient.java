@@ -76,6 +76,7 @@ import org.apache.hadoop.hdds.security.ssl.KeyStoresFactory;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.CAType;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateSignRequest;
+import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateStorage;
 import org.apache.hadoop.hdds.security.x509.exception.CertificateException;
 import org.apache.hadoop.hdds.security.x509.keys.HDDSKeyGenerator;
 import org.apache.hadoop.hdds.security.x509.keys.KeyCodec;
@@ -596,12 +597,10 @@ public abstract class DefaultCertificateClient implements CertificateClient {
       CAType caType, CertificateCodec codec, boolean addToCertMap,
       boolean updateCA) throws CertificateException {
     try {
-      CertPath certificatePath =
-          CertificateCodec.getCertPathFromPemEncodedString(pemEncodedCert);
-      X509Certificate cert = firstCertificateFrom(certificatePath);
 
-      String certName = String.format(CERT_FILE_NAME_FORMAT,
-          caType.getFileNamePrefix() + cert.getSerialNumber().toString());
+      CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
+      CertPath certificatePath = certificateStorage.writeCertificate(codec.getLocation(), pemEncodedCert, caType);
+      X509Certificate cert = (X509Certificate) certificatePath.getCertificates().get(0);
 
       if (updateCA) {
         if (caType == CAType.SUBORDINATE) {
@@ -612,8 +611,6 @@ public abstract class DefaultCertificateClient implements CertificateClient {
         }
       }
 
-      CertificateCodec.writeCertificate(
-          Paths.get(codec.getLocation().toAbsolutePath().toString(), certName), pemEncodedCert);
       if (addToCertMap) {
         certificateMap.put(cert.getSerialNumber().toString(), certificatePath);
         if (caType == CAType.SUBORDINATE) {
@@ -726,7 +723,7 @@ public abstract class DefaultCertificateClient implements CertificateClient {
   }
 
   private X509Certificate firstCertificateFrom(CertPath certificatePath) {
-    return CertificateCodec.firstCertificateFrom(certificatePath);
+    return (X509Certificate) certificatePath.getCertificates().get(0);
   }
 
   /**
