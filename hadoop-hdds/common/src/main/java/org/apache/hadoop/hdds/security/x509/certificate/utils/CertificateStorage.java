@@ -53,9 +53,8 @@ public class CertificateStorage {
 
   private static final String CERT_FILE_EXTENSION = ".crt";
   public static final String CERT_FILE_NAME_FORMAT = "%s" + CERT_FILE_EXTENSION;
-  
+
   public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-  private final Logger logger;
 
   private static final Logger LOG =
       LoggerFactory.getLogger(CertificateStorage.class);
@@ -69,15 +68,12 @@ public class CertificateStorage {
   private Set<X509Certificate> rootCaCertificates;
   private Set<X509Certificate> caCertificates;
   private SecurityConfig config;
-  private Path location;
   private String certSerialId;
   private String caCertId;
   private String rootCaCertId;
 
-  public CertificateStorage(SecurityConfig conf, Path location, Logger log) {
+  public CertificateStorage(SecurityConfig conf) {
     this.config = conf;
-    this.location = location;
-    this.logger = log;
   }
 
   /**
@@ -88,21 +84,40 @@ public class CertificateStorage {
    * @param pemEncodedCertificate - pemEncoded Certificate file.
    * @throws IOException - on Error.
    */
-  public static synchronized void writeCertificate(Path basePath,
-                                                   String pemEncodedCertificate)
-      throws IOException {
-    checkBasePathDirectory(basePath.getParent());
-    File certificateFile = basePath.toFile();
+  public synchronized CertPath writeCertificate(Path basePath,
+                                                String pemEncodedCertificate, CAType caType)
+      throws IOException, java.security.cert.CertificateException {
 
+    CertificateCodec certificateCodec = config.getCertificateCodec();
+    CertPath certPath = certificateCodec.getCertPathFromPemEncodedString(pemEncodedCertificate);
+
+    X509Certificate cert = (X509Certificate) certPath.getCertificates().get(0);
+    String certName = String.format(CERT_FILE_NAME_FORMAT,
+        caType.getFileNamePrefix() + cert.getSerialNumber().toString());
+    checkBasePathDirectory(basePath);
+    Path finalPath = Paths.get(basePath.toAbsolutePath().toString(), certName);
+    File certificateFile = finalPath.toFile();
     try (FileOutputStream file = new FileOutputStream(certificateFile)) {
       file.write(pemEncodedCertificate.getBytes(DEFAULT_CHARSET));
     }
     LOG.info("Save certificate to {}", certificateFile.getAbsolutePath());
     LOG.info("Certificate {}", pemEncodedCertificate);
     Files.setPosixFilePermissions(certificateFile.toPath(), PERMISSION_SET);
+    return certPath;
   }
 
-  public synchronized void storeCertificate(String pemEncodedCert,
+  private static void checkBasePathDirectory(Path basePath) throws IOException {
+    if (!basePath.toFile().exists()) {
+      if (!basePath.toFile().mkdirs()) {
+        LOG.error("Unable to create file path. Path: {}", basePath);
+        throw new IOException("Creation of the directories failed."
+            + basePath);
+      }
+    }
+  }
+
+
+  /*public synchronized void storeCertificate(String pemEncodedCert,
                                             CAType caType, CertificateCodec codec, boolean addToCertMap,
                                             boolean updateCA) throws CertificateException {
     try {
@@ -204,15 +219,6 @@ public class CertificateStorage {
   }
 
 
-  private static void checkBasePathDirectory(Path basePath) throws IOException {
-    if (!basePath.toFile().exists()) {
-      if (!basePath.toFile().mkdirs()) {
-        LOG.error("Unable to create file path. Path: {}", basePath);
-        throw new IOException("Creation of the directories failed."
-            + basePath);
-      }
-    }
-  }
 
   private void addCertsToSubCaMapIfNeeded(String fileName, CertPath certs) {
     if (fileName.startsWith(CAType.SUBORDINATE.getFileNamePrefix())) {
@@ -231,5 +237,5 @@ public class CertificateStorage {
 
   private static X509Certificate firstCertificateFrom(CertPath certificatePath) {
     return (X509Certificate) certificatePath.getCertificates().get(0);
-  }
+  }*/
 }

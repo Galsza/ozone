@@ -79,15 +79,22 @@ public class CertificateCodec {
   private static final Set<PosixFilePermission> PERMISSION_SET =
       Stream.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE)
           .collect(Collectors.toSet());
+
   /**
    * Creates a CertificateCodec with component name.
    *
-   * @param config - Security Config.
+   * @param config    - Security Config.
    * @param component - Component String.
    */
   public CertificateCodec(SecurityConfig config, String component) {
     this.securityConfig = config;
     this.location = securityConfig.getCertificateLocation(component);
+  }
+
+  //Use this only during the refactoring
+  public CertificateCodec(SecurityConfig config) {
+    this.securityConfig = config;
+    this.location = Paths.get("");
   }
 
   public CertificateCodec(SecurityConfig config, Path certPath) {
