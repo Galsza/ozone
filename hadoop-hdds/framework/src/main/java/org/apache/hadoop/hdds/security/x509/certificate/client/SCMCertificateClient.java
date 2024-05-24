@@ -358,9 +358,11 @@ public class SCMCertificateClient extends DefaultCertificateClient {
           CertificateCodec.getPEMEncodedString(rootCACertificatePath);
 
       PKCS10CertificationRequest csr = getCSRBuilder().build();
-      String subCaSerialId = BigInteger.ONE.add(BigInteger.ONE).toString();
-      CertPath scmSubCACertPath = rootCAServer.requestCertificate(csr, KERBEROS_TRUSTED, SCM, subCaSerialId).get();
-      String pemEncodedCert = CertificateCodec.getPEMEncodedString(scmSubCACertPath);
+      CertPath scmSubCACertPath = rootCAServer.requestCertificate(
+          csr, KERBEROS_TRUSTED, SCM,
+              BigInteger.ONE.add(BigInteger.ONE).toString()).get();
+      String pemEncodedCert =
+          CertificateCodec.getPEMEncodedString(scmSubCACertPath);
 
       storeCertificate(pemEncodedRootCert, CAType.SUBORDINATE);
       storeCertificate(pemEncodedCert, CAType.NONE);
@@ -370,7 +372,8 @@ public class SCMCertificateClient extends DefaultCertificateClient {
 
       // Persist scm cert serial ID.
       saveCertIdCallback.accept(cert.getSerialNumber().toString());
-    } catch (InterruptedException | ExecutionException | IOException | java.security.cert.CertificateException e) {
+    } catch (InterruptedException | ExecutionException | IOException |
+             java.security.cert.CertificateException e) {
       LOG.error("Error while fetching/storing SCM signed certificate.", e);
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
