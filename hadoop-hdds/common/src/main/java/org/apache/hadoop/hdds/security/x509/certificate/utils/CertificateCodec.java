@@ -223,6 +223,11 @@ public class CertificateCodec {
     writeCertificate(location.toAbsolutePath(), fileName, pem);
   }
 
+  public void writeCertificate(X509Certificate xCertificate, String fileName) throws IOException {
+    String pem = getPEMEncodedString(xCertificate);
+    writeCertificate(location.toAbsolutePath(), fileName, pem);
+  }
+
   /**
    * Write the pem encoded string to the specified file.
    */

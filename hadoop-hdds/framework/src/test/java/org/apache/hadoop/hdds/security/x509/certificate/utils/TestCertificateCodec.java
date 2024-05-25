@@ -118,7 +118,7 @@ public class TestCertificateCodec {
     String pemString = CertificateCodec.getPEMEncodedString(cert);
     codec.writeCertificate(basePath, "pemcertificate.crt", pemString);
 
-    X509Certificate loadedCertificate = codec.getTargetCert(basePath, "pemcertificate.crt");
+    X509Certificate loadedCertificate = codec.getTargetCertHolder(basePath, "pemcertificate.crt");
 
     assertNotNull(loadedCertificate);
     assertEquals(cert.getSerialNumber(), loadedCertificate.getSerialNumber());
@@ -133,7 +133,7 @@ public class TestCertificateCodec {
     CertificateCodec codec = new CertificateCodec(securityConfig, COMPONENT);
     codec.writeCertificate(cert);
 
-    X509Certificate loadedCertificate = codec.getTargetCert();
+    X509Certificate loadedCertificate = codec.getTargetCertHolder();
 
     assertNotNull(loadedCertificate);
     assertEquals(cert.getSerialNumber(), loadedCertificate.getSerialNumber());
@@ -150,7 +150,7 @@ public class TestCertificateCodec {
     // Rewrite with force support
     codec.writeCertificate(cert, "newcert.crt");
 
-    X509Certificate loadedCertificate = codec.getTargetCert(codec.getLocation(), "newcert.crt");
+    X509Certificate loadedCertificate = codec.getTargetCertHolder(codec.getLocation(), "newcert.crt");
 
     assertNotNull(loadedCertificate);
   }
@@ -162,6 +162,7 @@ public class TestCertificateCodec {
   public void testMultipleCertReadWrite() throws Exception {
     //Given a certificate path of one certificate and another certificate
     X509Certificate certToPrepend = generateTestCert();
+
     X509Certificate initialCert = generateTestCert();
     assertNotEquals(certToPrepend, initialCert);
 
@@ -170,6 +171,7 @@ public class TestCertificateCodec {
 
     //When prepending the second one before the first one and reading them back
     CertificateCodec codec = new CertificateCodec(securityConfig, "ca");
+
     CertPath updatedCertPath = codec.prependCertToCertPath(certToPrepend, certPath);
 
     String certFileName = "newcert.crt";
