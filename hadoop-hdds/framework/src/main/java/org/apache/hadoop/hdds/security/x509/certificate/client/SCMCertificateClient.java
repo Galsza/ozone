@@ -172,7 +172,7 @@ public class SCMCertificateClient extends DefaultCertificateClient {
 
   @Override
   public String signAndStoreCertificate(PKCS10CertificationRequest request,
-      Path certPath, boolean renew) throws CertificateException {
+                                        Path certWritePath, boolean renew) throws CertificateException {
     try {
       HddsProtos.ScmNodeDetailsProto scmNodeDetailsProto =
           HddsProtos.ScmNodeDetailsProto.newBuilder()
@@ -185,19 +185,17 @@ public class SCMCertificateClient extends DefaultCertificateClient {
           getScmSecureClient().getSCMCertChain(scmNodeDetailsProto,
               getEncodedString(request), true);
 
-      CertificateCodec certCodec = new CertificateCodec(
-          getSecurityConfig(), certPath);
       String pemEncodedCert = response.getX509Certificate();
 
       // Store SCM sub CA and root CA certificate.
       if (response.hasX509CACertificate()) {
         String pemEncodedRootCert = response.getX509CACertificate();
         storeCertificate(pemEncodedRootCert,
-            CAType.SUBORDINATE, certCodec, false, !renew);
-        storeCertificate(pemEncodedCert, CAType.NONE, certCodec,
+            CAType.SUBORDINATE, certWritePath, false, !renew);
+        storeCertificate(pemEncodedCert, CAType.NONE, certWritePath,
             false, !renew);
         //note: this does exactly the same as store certificate
-        CertificateCodec.writeCertificate(Paths.get(certPath.toString(),
+        CertificateCodec.writeCertificate(Paths.get(certWritePath.toString(),
             getSecurityConfig().getCertificateFileName()), pemEncodedCert);
 
         X509Certificate certificate =

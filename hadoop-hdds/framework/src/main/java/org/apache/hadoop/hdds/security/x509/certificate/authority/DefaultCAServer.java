@@ -29,6 +29,7 @@ import org.apache.hadoop.hdds.security.SecurityConfig;
 import org.apache.hadoop.hdds.security.exception.SCMSecurityException;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.profile.PKIProfile;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
+import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateStorage;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.SelfSignedCertificate;
 import org.apache.hadoop.hdds.security.x509.crl.CRLInfo;
 import org.apache.hadoop.hdds.security.x509.keys.HDDSKeyGenerator;
@@ -579,9 +580,10 @@ public class DefaultCAServer implements CertificateServer {
     builder.addInetAddresses();
     X509CertificateHolder selfSignedCertificate = builder.build();
     String pemString = securityConfig.getCertificateCodec(componentName).getPEMEncodedString(selfSignedCertificate);
-    CertificateCodec.writeCertificate(
+    CertificateStorage certificateStorage = new CertificateStorage(config);
+    certificateStorage.writeCertificate(
         Paths.get(config.getCertificateLocation(componentName).toAbsolutePath().toString(),
-            config.getCertificateFileName()), pemString);
+            config.getCertificateFileName()), pemString, CAType.NONE);
   }
 
   private void initWithExternalRootCa(SecurityConfig conf) {

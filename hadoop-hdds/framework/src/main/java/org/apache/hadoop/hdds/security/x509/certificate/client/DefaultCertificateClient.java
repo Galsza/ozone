@@ -475,8 +475,8 @@ public abstract class DefaultCertificateClient implements CertificateClient {
         certId);
     try {
       String pemEncodedCert = getScmSecureClient().getCertificate(certId);
-      this.storeCertificate(pemEncodedCert, CAType.NONE);
-      return CertificateCodec.getX509Certificate(pemEncodedCert);
+      CertPath certWritePath = this.storeCertificate(pemEncodedCert, CAType.NONE);
+      return firstCertificateFrom(certWritePath);
     } catch (Exception e) {
       getLogger().error("Error while getting Certificate with " +
           "certSerialId:{} from scm.", certId, e);
@@ -585,21 +585,20 @@ public abstract class DefaultCertificateClient implements CertificateClient {
    * @param caType         - Is CA certificate.
    * @throws CertificateException - on Error.
    */
-  public void storeCertificate(String pemEncodedCert,
-      CAType caType) throws CertificateException {
-    CertificateCodec certificateCodec = new CertificateCodec(securityConfig,
-        component);
-    storeCertificate(pemEncodedCert, caType,
-        certificateCodec, true, false);
+  public CertPath storeCertificate(String pemEncodedCert,
+                                   CAType caType) throws CertificateException {
+    Path certWritePath = securityConfig.getCertificateLocation(component);
+    return storeCertificate(pemEncodedCert, caType,
+        certWritePath, true, false);
   }
 
-  public synchronized void storeCertificate(String pemEncodedCert,
-      CAType caType, CertificateCodec codec, boolean addToCertMap,
-      boolean updateCA) throws CertificateException {
+  public synchronized CertPath storeCertificate(String pemEncodedCert,
+                                                CAType caType, Path certWritePath, boolean addToCertMap,
+                                                boolean updateCA) throws CertificateException {
     try {
 
       CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
-      CertPath certificatePath = certificateStorage.writeCertificate(codec.getLocation(), pemEncodedCert, caType);
+      CertPath certificatePath = certificateStorage.writeCertificate(certWritePath, pemEncodedCert, caType);
       X509Certificate cert = (X509Certificate) certificatePath.getCertificates().get(0);
 
       if (updateCA) {
@@ -620,7 +619,8 @@ public abstract class DefaultCertificateClient implements CertificateClient {
           rootCaCertificates.add(cert);
         }
       }
-    } catch (IOException | java.security.cert.CertificateException e) {
+      return certificatePath;
+    } catch (IOException e) {
       throw new CertificateException("Error while storing certificate.", e,
           CERTIFICATE_ERROR);
     }
@@ -1323,7 +1323,7 @@ public abstract class DefaultCertificateClient implements CertificateClient {
       PKCS10CertificationRequest request) throws IOException;
 
   protected String signAndStoreCertificate(
-      PKCS10CertificationRequest request, Path certificatePath, boolean renew)
+      PKCS10CertificationRequest request, Path certWritePath, boolean renew)
       throws CertificateException {
     try {
       SCMGetCertResponseProto response = getCertificateSignResponse(request);
@@ -1331,23 +1331,21 @@ public abstract class DefaultCertificateClient implements CertificateClient {
       // Persist certificates.
       if (response.hasX509CACertificate()) {
         String pemEncodedCert = response.getX509Certificate();
-        CertificateCodec certCodec = new CertificateCodec(
-            getSecurityConfig(), certificatePath);
         // Certs will be added to cert map after reloadAllCertificate called
-        storeCertificate(pemEncodedCert, CAType.NONE,
-            certCodec, false, !renew);
+        CertPath certificates = storeCertificate(pemEncodedCert, CAType.NONE,
+            certWritePath, false, !renew);
         storeCertificate(response.getX509CACertificate(),
-            CAType.SUBORDINATE, certCodec, false, !renew);
+            CAType.SUBORDINATE, certWritePath, false, !renew);
 
-        getAndStoreAllRootCAs(certCodec, renew);
+        getAndStoreAllRootCAs(certWritePath, renew);
+        X509Certificate cert = firstCertificateFrom(certificates);
         // Return the default certificate ID
-        return updateCertSerialId(CertificateCodec
-            .getX509Certificate(pemEncodedCert).getSerialNumber().toString());
+        return updateCertSerialId(cert.getSerialNumber().toString());
       } else {
         throw new CertificateException("Unable to retrieve " +
             "certificate chain.");
       }
-    } catch (IOException | java.security.cert.CertificateException e) {
+    } catch (IOException e) {
       logger.error("Error while signing and storing SCM signed certificate.",
           e);
       throw new CertificateException(
@@ -1355,11 +1353,11 @@ public abstract class DefaultCertificateClient implements CertificateClient {
     }
   }
 
-  private void getAndStoreAllRootCAs(CertificateCodec certCodec, boolean renew)
+  private void getAndStoreAllRootCAs(Path certWritePath, boolean renew)
       throws IOException {
     List<String> rootCAPems = scmSecurityClient.getAllRootCaCertificates();
     for (String rootCAPem : rootCAPems) {
-      storeCertificate(rootCAPem, CAType.ROOT, certCodec,
+      storeCertificate(rootCAPem, CAType.ROOT, certWritePath,
           false, !renew);
     }
   }

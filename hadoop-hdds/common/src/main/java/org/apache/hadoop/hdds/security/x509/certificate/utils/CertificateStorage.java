@@ -19,14 +19,12 @@ package org.apache.hadoop.hdds.security.x509.certificate.utils;
 
 import org.apache.hadoop.hdds.security.SecurityConfig;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.CAType;
-import org.apache.hadoop.hdds.security.x509.exception.CertificateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -35,16 +33,13 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.cert.CertPath;
 import java.security.cert.X509Certificate;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
-import static org.apache.hadoop.hdds.security.x509.exception.CertificateException.ErrorCode.CERTIFICATE_ERROR;
 
 /**
  * Class for storing certificates to disk.
@@ -63,14 +58,7 @@ public class CertificateStorage {
       Stream.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE)
           .collect(Collectors.toSet());
 
-  private CertPath certPath;
-  private Map<String, CertPath> certificateMap;
-  private Set<X509Certificate> rootCaCertificates;
-  private Set<X509Certificate> caCertificates;
   private SecurityConfig config;
-  private String certSerialId;
-  private String caCertId;
-  private String rootCaCertId;
 
   public CertificateStorage(SecurityConfig conf) {
     this.config = conf;
@@ -86,7 +74,7 @@ public class CertificateStorage {
    */
   public synchronized CertPath writeCertificate(Path basePath,
                                                 String pemEncodedCertificate, CAType caType)
-      throws IOException, java.security.cert.CertificateException {
+      throws IOException {
 
     CertificateCodec certificateCodec = config.getCertificateCodec();
     CertPath certPath = certificateCodec.getCertPathFromPemEncodedString(pemEncodedCertificate);
