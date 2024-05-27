@@ -33,7 +33,6 @@ import org.apache.hadoop.hdds.security.x509.keys.HDDSKeyGenerator;
 import org.apache.hadoop.hdds.security.x509.keys.KeyCodec;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
