@@ -72,8 +72,7 @@ public class CertificateStorage {
    * @param pemEncodedCertificate - pemEncoded Certificate file.
    * @throws IOException - on Error.
    */
-  public synchronized CertPath writeCertificate(Path basePath,
-                                                String pemEncodedCertificate, CAType caType)
+  public synchronized CertPath writeCertificate(Path basePath, String pemEncodedCertificate, CAType caType)
       throws IOException {
 
     CertificateCodec certificateCodec = config.getCertificateCodec();
@@ -92,6 +91,17 @@ public class CertificateStorage {
     LOG.info("Certificate {}", pemEncodedCertificate);
     Files.setPosixFilePermissions(certificateFile.toPath(), PERMISSION_SET);
     return certPath;
+  }
+
+  public synchronized void writeCertificate(Path basePath, String pemEncodedCertificate) throws IOException {
+    checkBasePathDirectory(basePath.getParent());
+    File certificateFile = basePath.toFile();
+    try (FileOutputStream file = new FileOutputStream(certificateFile)) {
+      file.write(pemEncodedCertificate.getBytes(DEFAULT_CHARSET));
+    }
+    LOG.info("Save certificate to {}", certificateFile.getAbsolutePath());
+    LOG.info("Certificate {}", pemEncodedCertificate);
+    Files.setPosixFilePermissions(certificateFile.toPath(), PERMISSION_SET);
   }
 
   private static void checkBasePathDirectory(Path basePath) throws IOException {
