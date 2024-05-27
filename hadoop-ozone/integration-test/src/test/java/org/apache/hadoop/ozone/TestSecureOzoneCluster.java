@@ -159,6 +159,7 @@ import org.apache.ratis.protocol.ClientId;
 import org.apache.ratis.util.ExitUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
@@ -175,7 +176,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
@@ -1267,6 +1267,7 @@ final class TestSecureOzoneCluster {
   /**
    * Test functionality to get SCM signed certificate for OM.
    */
+//  @RepeatedTest(value = 1000, failureThreshold = 0)
   @Test
   @Unhealthy("HDDS-8764")
   void testOMGrpcServerCertificateRenew() throws Exception {
