@@ -273,7 +273,7 @@ public class CertificateCodec {
   /**
    * Gets a certificate path from the specified pem encoded String.
    */
-  public static CertPath getCertPathFromPemEncodedString(
+  public CertPath getCertPathFromPemEncodedString(
       String pemString) throws IOException {
     // ByteArrayInputStream.close(), which is a noop, can be safely ignored.
     try {

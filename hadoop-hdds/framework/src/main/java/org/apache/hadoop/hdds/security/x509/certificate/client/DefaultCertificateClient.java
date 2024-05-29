@@ -1492,9 +1492,9 @@ public abstract class DefaultCertificateClient implements CertificateClient {
   public synchronized void setCACertificate(X509Certificate cert)
       throws Exception {
     caCertId = cert.getSerialNumber().toString();
-    String pemCert = securityConfig.getCertificateCodec().getPEMEncodedString(cert);
-    certificateMap.put(caCertId,
-        CertificateCodec.getCertPathFromPemEncodedString(pemCert));
+    CertificateCodec certificateCodec = securityConfig.getCertificateCodec();
+    String pemCert = certificateCodec.getPEMEncodedString(cert);
+    certificateMap.put(caCertId, certificateCodec.getCertPathFromPemEncodedString(pemCert));
     pemEncodedCACerts = Arrays.asList(pemCert);
   }
 }

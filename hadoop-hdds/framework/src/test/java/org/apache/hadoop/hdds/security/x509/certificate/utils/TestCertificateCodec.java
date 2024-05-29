@@ -110,10 +110,10 @@ public class TestCertificateCodec {
     CertPath pathToEncode =
         certificateFactory.engineGenerateCertPath(ImmutableList.of(cert1,
             cert2));
-    CertificateCodec codec = new CertificateCodec(securityConfig, "");
+    CertificateCodec codec = securityConfig.getCertificateCodec();
     String encodedPath = codec.getPEMEncodedString(pathToEncode);
     CertPath certPathDecoded =
-        CertificateCodec.getCertPathFromPemEncodedString(encodedPath);
+        codec.getCertPathFromPemEncodedString(encodedPath);
     assertEquals(cert1, certPathDecoded.getCertificates().get(0));
     assertEquals(cert2, certPathDecoded.getCertificates().get(1));
   }
