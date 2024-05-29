@@ -98,6 +98,7 @@ public class TestRootCARotationManager {
   private String cID = UUID.randomUUID().toString();
   private String scmID = UUID.randomUUID().toString();
   private BigInteger certID = new BigInteger("1");
+  private CertificateCodec certificateCodec;
 
   @BeforeEach
   public void init() throws IOException, TimeoutException,
@@ -112,6 +113,7 @@ public class TestRootCARotationManager {
     securityConfig = new SecurityConfig(ozoneConfig);
     scmCertClient = new SCMCertificateClient(securityConfig, null, scmID, cID,
         certID.toString(), "localhost");
+    certificateCodec = securityConfig.getCertificateCodec();
     scmServiceManager = new SCMServiceManager();
     scmContext = mock(SCMContext.class);
     scmhaManager = mock(SCMHAManager.class);
@@ -259,7 +261,7 @@ public class TestRootCARotationManager {
         LocalDateTime.now(), Duration.ofSeconds(90));
     scmCertClient.setCACertificate(cert);
     CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, "scm/sub-ca"),
-        CertificateCodec.getPEMEncodedString(cert));
+        certificateCodec.getPEMEncodedString(cert));
     rootCARotationManager = new RootCARotationManager(scm);
     rootCARotationManager.setRootCARotationHandler(handler);
     GenericTestUtils.LogCapturer logs =

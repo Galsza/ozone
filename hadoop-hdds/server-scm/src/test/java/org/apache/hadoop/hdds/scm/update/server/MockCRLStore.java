@@ -30,7 +30,6 @@ import org.apache.hadoop.hdds.security.SecurityConfig;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.CRLApprover;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.CertificateStore;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.DefaultCRLApprover;
-import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
 import org.apache.hadoop.hdds.security.x509.crl.CRLInfo;
 import org.apache.hadoop.security.ssl.KeyStoreTestUtil;
 import org.bouncycastle.asn1.x509.CRLReason;
@@ -116,10 +115,8 @@ public class MockCRLStore implements CRLStore {
 
 
   private X509Certificate generateX509Cert() throws Exception {
-    return CertificateCodec.getX509Certificate(
-        CertificateCodec.getPEMEncodedString(
-            KeyStoreTestUtil.generateCertificate("CN=Test", keyPair, 30,
-                "SHA256withRSA")));
+    return KeyStoreTestUtil.generateCertificate("CN=Test", keyPair, 30,
+        "SHA256withRSA");
   }
 
   @Override

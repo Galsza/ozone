@@ -117,7 +117,7 @@ public class CertificateCodec {
   /**
    * Get a valid pem encoded string for the certification path.
    */
-  public static String getPEMEncodedString(CertPath certPath)
+  public String getPEMEncodedString(CertPath certPath)
       throws SCMSecurityException {
     List<? extends Certificate> certsInPath = certPath.getCertificates();
     ArrayList<String> pemEncodedList = new ArrayList<>(certsInPath.size());
@@ -176,7 +176,7 @@ public class CertificateCodec {
    * @return PEM Encoded Certificate String.
    * @throws SCMSecurityException - On failure to create a PEM String.
    */
-  public static String getPEMEncodedString(X509Certificate certificate)
+  public String getPEMEncodedString(X509Certificate certificate)
       throws SCMSecurityException {
     try {
       return writePEMEncoded(certificate, new StringWriter()).toString();

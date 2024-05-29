@@ -22,7 +22,6 @@ import org.apache.hadoop.hdds.conf.OzoneConfiguration;
 import org.apache.hadoop.hdds.security.SecurityConfig;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.CRLApprover;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.DefaultCRLApprover;
-import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
 import org.apache.hadoop.hdds.security.x509.crl.CRLInfo;
 import org.apache.hadoop.ozone.OzoneConsts;
 import org.apache.hadoop.security.ssl.KeyStoreTestUtil;
@@ -108,10 +107,8 @@ public class TestDatanodeCRLStoreImpl {
   }
 
   private X509Certificate generateX509Cert() throws Exception {
-    return CertificateCodec.getX509Certificate(
-        CertificateCodec.getPEMEncodedString(
-            KeyStoreTestUtil.generateCertificate("CN=Test", keyPair, 30,
-                "SHA256withRSA")));
+    return KeyStoreTestUtil.generateCertificate("CN=Test", keyPair, 30,
+        "SHA256withRSA");
   }
 }
 

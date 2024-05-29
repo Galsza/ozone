@@ -32,6 +32,7 @@ import org.apache.hadoop.hdds.security.x509.certificate.authority.profile.Defaul
 import org.apache.hadoop.hdds.security.x509.certificate.authority.profile.PKIProfile;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateSignRequest;
+import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateStorage;
 import org.apache.hadoop.hdds.security.x509.exception.CertificateException;
 import org.apache.hadoop.ozone.OzoneConsts;
 import org.apache.hadoop.ozone.OzoneSecurityUtil;
@@ -192,14 +193,13 @@ public class SCMCertificateClient extends DefaultCertificateClient {
         String pemEncodedRootCert = response.getX509CACertificate();
         storeCertificate(pemEncodedRootCert,
             CAType.SUBORDINATE, certWritePath, false, !renew);
-        storeCertificate(pemEncodedCert, CAType.NONE, certWritePath,
+        CertPath writtenCertPath = storeCertificate(pemEncodedCert, CAType.NONE, certWritePath,
             false, !renew);
-        //note: this does exactly the same as store certificate
-        CertificateCodec.writeCertificate(Paths.get(certWritePath.toString(),
+        CertificateStorage certificateStorage = new CertificateStorage(getSecurityConfig());
+        certificateStorage.writeCertificate(Paths.get(certWritePath.toString(),
             getSecurityConfig().getCertificateFileName()), pemEncodedCert);
 
-        X509Certificate certificate =
-            CertificateCodec.getX509Certificate(pemEncodedCert);
+        X509Certificate certificate = (X509Certificate) writtenCertPath.getCertificates().get(0);
         // return new scm cert serial ID.
         return certificate.getSerialNumber().toString();
       } else {
@@ -258,7 +258,7 @@ public class SCMCertificateClient extends DefaultCertificateClient {
           LOG.info("Fetched new root CA certificate {} from leader SCM",
               cert.getSerialNumber().toString());
           storeCertificate(
-              CertificateCodec.getPEMEncodedString(cert), CAType.SUBORDINATE);
+              getSecurityConfig().getCertificateCodec().getPEMEncodedString(cert), CAType.SUBORDINATE);
         }
         String scmCertId = getCertificate().getSerialNumber().toString();
         notifyNotificationReceivers(scmCertId, scmCertId);
@@ -324,18 +324,17 @@ public class SCMCertificateClient extends DefaultCertificateClient {
       if (response.hasX509CACertificate()) {
         String pemEncodedRootCert = response.getX509CACertificate();
         storeCertificate(pemEncodedRootCert, CAType.SUBORDINATE);
-        storeCertificate(pemEncodedCert, CAType.NONE);
+        CertPath writtenCertPath = storeCertificate(pemEncodedCert, CAType.NONE);
         //note: this does exactly the same as store certificate
         persistSubCACertificate(pemEncodedCert);
 
-        X509Certificate certificate =
-            CertificateCodec.getX509Certificate(pemEncodedCert);
+        X509Certificate certificate = (X509Certificate) writtenCertPath.getCertificates().get(0);
         // Persist scm cert serial ID.
         saveCertIdCallback.accept(certificate.getSerialNumber().toString());
       } else {
         throw new RuntimeException("Unable to retrieve SCM certificate chain");
       }
-    } catch (IOException | java.security.cert.CertificateException e) {
+    } catch (IOException e) {
       LOG.error("Error while fetching/storing SCM signed certificate.", e);
       throw new RuntimeException(e);
     }
@@ -352,7 +351,7 @@ public class SCMCertificateClient extends DefaultCertificateClient {
           getSecurityConfig(), null, BigInteger.ONE,
           new DefaultCAProfile(), SCM_ROOT_CA_COMPONENT_NAME);
       CertPath rootCACertificatePath = rootCAServer.getCaCertPath();
-      CertificateCodec certificateCodec = getSecurityConfig().getCertificateCodec(getComponentName());
+      CertificateCodec certificateCodec = getSecurityConfig().getCertificateCodec();
       String pemEncodedRootCert = certificateCodec.getPEMEncodedString(rootCACertificatePath);
 
       PKCS10CertificationRequest csr = getCSRBuilder().build();
@@ -413,7 +412,8 @@ public class SCMCertificateClient extends DefaultCertificateClient {
   private void persistSubCACertificate(
       String certificateHolder) throws IOException {
     SecurityConfig config = getSecurityConfig();
-    CertificateCodec.writeCertificate(
+    CertificateStorage certificateStorage = new CertificateStorage(config);
+    certificateStorage.writeCertificate(
         Paths.get(config.getCertificateLocation(getComponentName()).toString(), config.getCertificateFileName()),
         certificateHolder);
   }

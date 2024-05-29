@@ -94,7 +94,6 @@ import static org.apache.hadoop.hdds.security.exception.SCMSecurityException.Err
 import static org.apache.hadoop.hdds.security.exception.SCMSecurityException.ErrorCode.GET_CA_CERT_FAILED;
 import static org.apache.hadoop.hdds.security.exception.SCMSecurityException.ErrorCode.GET_CERTIFICATE_FAILED;
 import static org.apache.hadoop.hdds.security.x509.certificate.authority.CertificateApprover.ApprovalType.KERBEROS_TRUSTED;
-import static org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec.getPEMEncodedString;
 import static org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateSignRequest.getCertificationRequest;
 
 /**
@@ -119,6 +118,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
   private final CertificateClient scmCertificateClient;
   private final SecurityConfig config;
   private final SequenceIdGenerator sequenceIdGen;
+  private final CertificateCodec certificateCodec;
 
   // SecretKey may not be enabled when neither block token nor container
   // token is enabled.
@@ -136,6 +136,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
     this.scmCertificateServer = scmCertificateServer;
     this.scmCertificateClient = scmCertClient;
     this.config = new SecurityConfig(conf);
+    this.certificateCodec = config.getCertificateCodec();
     this.sequenceIdGen = scm.getSequenceIdGen();
     this.secretKeyManager = secretKeyManager;
     final int handlerCount =
@@ -293,7 +294,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
             scmCertificateClient.getAllCaCerts() :
             scmCertificateClient.getAllRootCaCerts();
     for (X509Certificate cert : certList) {
-      pemEncodedList.add(getPEMEncodedString(cert));
+      pemEncodedList.add(certificateCodec.getPEMEncodedString(cert));
     }
     return pemEncodedList;
   }
@@ -379,7 +380,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
           KERBEROS_TRUSTED, nodeType, getNextCertificateId());
     }
     try {
-      return getPEMEncodedString(future.get());
+      return certificateCodec.getPEMEncodedString(future.get());
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw generateException(e, nodeType);
@@ -426,7 +427,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
       X509Certificate certificate =
           scmCertificateServer.getCertificate(certSerialId);
       if (certificate != null) {
-        return getPEMEncodedString(certificate);
+        return certificateCodec.getPEMEncodedString(certificate);
       }
     } catch (CertificateException e) {
       throw new SCMSecurityException("getCertificate operation failed. ", e,
@@ -446,8 +447,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
   public String getCACertificate() throws IOException {
     LOGGER.debug("Getting CA certificate.");
     try {
-      return getPEMEncodedString(
-          scmCertificateServer.getCaCertPath());
+      return certificateCodec.getPEMEncodedString(scmCertificateServer.getCaCertPath());
     } catch (CertificateException e) {
       throw new SCMSecurityException("getRootCertificate operation failed. ",
           e, GET_CA_CERT_FAILED);
@@ -472,7 +472,7 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
     List<String> results = new ArrayList<>(certificates.size());
     for (X509Certificate cert : certificates) {
       try {
-        String certStr = getPEMEncodedString(cert);
+        String certStr = certificateCodec.getPEMEncodedString(cert);
         results.add(certStr);
       } catch (SCMSecurityException e) {
         throw new SCMSecurityException("listCertificate operation failed.",
@@ -492,7 +492,6 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
   @Override
   public synchronized String getRootCACertificate() throws IOException {
     LOGGER.debug("Getting Root CA certificate.");
-    CertificateCodec certificateCodec = config.getCertificateCodec(scmCertificateClient.getComponentName());
     if (rootCertificateServer != null) {
       try {
         return certificateCodec.getPEMEncodedString(
@@ -502,7 +501,6 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
         throw new IOException("Failed to get root CA certificate", e);
       }
     }
-
     return certificateCodec.getPEMEncodedString(
         scmCertificateClient.getCACertificate());
   }
@@ -543,7 +541,6 @@ public class SCMSecurityProtocolServer implements SCMSecurityProtocol,
     List<String> pemEncodedCerts = new ArrayList<>();
     for (X509Certificate cert : storageContainerManager.getCertificateStore()
         .removeAllExpiredCertificates()) {
-      CertificateCodec certificateCodec = config.getCertificateCodec(scmCertificateClient.getComponentName());
       pemEncodedCerts.add(certificateCodec.getPEMEncodedString(cert));
     }
     return pemEncodedCerts;

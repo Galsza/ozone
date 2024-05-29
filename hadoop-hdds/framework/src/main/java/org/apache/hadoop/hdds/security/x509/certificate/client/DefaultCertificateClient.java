@@ -592,6 +592,7 @@ public abstract class DefaultCertificateClient implements CertificateClient {
         certWritePath, true, false);
   }
 
+
   public synchronized CertPath storeCertificate(String pemEncodedCert,
                                                 CAType caType, Path certWritePath, boolean addToCertMap,
                                                 boolean updateCA) throws CertificateException {
@@ -1491,7 +1492,7 @@ public abstract class DefaultCertificateClient implements CertificateClient {
   public synchronized void setCACertificate(X509Certificate cert)
       throws Exception {
     caCertId = cert.getSerialNumber().toString();
-    String pemCert = CertificateCodec.getPEMEncodedString(cert);
+    String pemCert = securityConfig.getCertificateCodec().getPEMEncodedString(cert);
     certificateMap.put(caCertId,
         CertificateCodec.getCertPathFromPemEncodedString(pemCert));
     pemEncodedCACerts = Arrays.asList(pemCert);
