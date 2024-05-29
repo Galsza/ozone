@@ -227,12 +227,12 @@ public abstract class DefaultCertificateClient implements CertificateClient {
   }
 
   private synchronized void readCertificateFile(Path filePath) {
-    CertificateCodec codec = new CertificateCodec(securityConfig, component);
     String fileName = filePath.getFileName().toString();
 
     X509Certificate cert;
     try {
-      CertPath allCertificates = codec.getCertPath(fileName);
+      CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
+      CertPath allCertificates = certificateStorage.getCertPath(component, fileName);
       cert = firstCertificateFrom(allCertificates);
       String readCertSerialId = cert.getSerialNumber().toString();
 

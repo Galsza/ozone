@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -32,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.cert.CertPath;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,7 +60,7 @@ public class CertificateStorage {
       Stream.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE)
           .collect(Collectors.toSet());
 
-  private SecurityConfig config;
+  private final SecurityConfig config;
 
   public CertificateStorage(SecurityConfig conf) {
     this.config = conf;
@@ -102,6 +104,21 @@ public class CertificateStorage {
     LOG.info("Save certificate to {}", certificateFile.getAbsolutePath());
     LOG.info("Certificate {}", pemEncodedCertificate);
     Files.setPosixFilePermissions(certificateFile.toPath(), PERMISSION_SET);
+  }
+
+  public CertPath getCertPath(String componentName, String fileName) throws IOException,
+      CertificateException {
+    Path path = config.getCertificateLocation(componentName);
+    checkBasePathDirectory(path.toAbsolutePath());
+    File certFile =
+        Paths.get(path.toAbsolutePath().toString(), fileName).toFile();
+    if (!certFile.exists()) {
+      throw new IOException("Unable to find the requested certificate file. " +
+          "Path: " + certFile);
+    }
+    try (FileInputStream is = new FileInputStream(certFile)) {
+      return config.getCertificateCodec().generateCertPathFromInputStream(is);
+    }
   }
 
   private static void checkBasePathDirectory(Path basePath) throws IOException {

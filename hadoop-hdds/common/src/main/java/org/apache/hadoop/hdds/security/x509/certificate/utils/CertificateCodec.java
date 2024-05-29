@@ -299,21 +299,6 @@ public class CertificateCodec {
   }
 
   /**
-   * Get the certificate path stored under the specified filename.
-   */
-  public CertPath getCertPath(String fileName)
-      throws IOException, CertificateException {
-    return getCertPath(location, fileName);
-  }
-
-  /**
-   * Get the default certificate path for this cert codec.
-   */
-  public CertPath getCertPath() throws CertificateException, IOException {
-    return getCertPath(this.securityConfig.getCertificateFileName());
-  }
-
-  /**
    * Returns the Certificate holder from X509Certificate class.
    *
    * @param x509cert - Certificate class.
@@ -365,7 +350,7 @@ public class CertificateCodec {
         location, securityConfig.getCertificateFileName());
   }
 
-  private static CertPath generateCertPathFromInputStream(
+  public static CertPath generateCertPathFromInputStream(
       InputStream inputStream) throws CertificateException {
     CertificateFactory fact = getCertFactory();
     return fact.engineGenerateCertPath(inputStream, "PEM");

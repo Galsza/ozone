@@ -196,8 +196,8 @@ public class DefaultCAServer implements CertificateServer {
   @Override
   public CertPath getCaCertPath()
       throws CertificateException, IOException {
-    CertificateCodec codec = new CertificateCodec(config, componentName);
-    return codec.getCertPath();
+    CertificateStorage certificateStorage = new CertificateStorage(config);
+    return certificateStorage.getCertPath(componentName, config.getCertificateFileName());
   }
 
   /**
@@ -274,7 +274,8 @@ public class DefaultCAServer implements CertificateServer {
               beginDate, endDate, csr, role, certSerialId);
         }
         CertificateCodec codec = new CertificateCodec(config, componentName);
-        CertPath certPath = codec.getCertPath();
+        CertificateStorage certificateStorage = new CertificateStorage(config);
+        CertPath certPath = certificateStorage.getCertPath(componentName, config.getCertificateFileName());
         CertPath updatedCertPath = codec.prependCertToCertPath(xcert, certPath);
         xCertHolders.complete(updatedCertPath);
         break;

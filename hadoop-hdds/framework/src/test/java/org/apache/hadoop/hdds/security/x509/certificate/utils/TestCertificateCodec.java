@@ -133,7 +133,8 @@ public class TestCertificateCodec {
         CertificateCodec.getX509Certificate(prependedHolder);
     CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
         securityConfig.getCertificateCodec("test").getPEMEncodedString(initialHolder));
-    CertPath initialPath = codec.getCertPath();
+    CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
+    CertPath initialPath = certificateStorage.getCertPath(COMPONENT, securityConfig.getCertificateFileName());
     CertPath pathWithPrependedCert =
         codec.prependCertToCertPath(prependedHolder, initialPath);
 
@@ -237,6 +238,7 @@ public class TestCertificateCodec {
             ImmutableList.of(CertificateCodec.getX509Certificate(initialCert)));
 
     //When prepending the second one before the first one and reading them back
+    CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
     CertificateCodec codec =
         new CertificateCodec(securityConfig, "ca");
 
@@ -246,11 +248,11 @@ public class TestCertificateCodec {
     String certFileName = "newcert.crt";
     String pemEncodedStrings =
         codec.getPEMEncodedString(updatedCertPath);
-    CertificateCodec.writeCertificate(Paths.get(codec.getLocation().toAbsolutePath().toString(), certFileName),
+    certificateStorage.writeCertificate(Paths.get(codec.getLocation().toAbsolutePath().toString(), certFileName),
         pemEncodedStrings);
 
     CertPath rereadCertPath =
-        codec.getCertPath(certFileName);
+        certificateStorage.getCertPath("ca", certFileName);
 
     //Then the two certificates are the same as before
     Certificate rereadPrependedCert = rereadCertPath.getCertificates().get(0);
