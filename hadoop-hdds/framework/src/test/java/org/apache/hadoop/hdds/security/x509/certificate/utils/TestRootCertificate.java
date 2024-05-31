@@ -29,6 +29,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.SignatureException;
@@ -146,9 +147,9 @@ public class TestRootCertificate {
     assertEquals(BigInteger.ONE, certificate.getSerialNumber());
 
     CertificateCodec codec = new CertificateCodec(securityConfig, "scm");
-    String pemString = CertificateCodec.getPEMEncodedString(certificate);
+    String pemString = codec.getPEMEncodedString(certificate);
 
-    codec.writeCertificate(basePath, "pemcertificate.crt",
+    CertificateCodec.writeCertificate(Paths.get(basePath.toString(), "pemcertificate.crt"),
         pemString);
 
     X509Certificate loadedCert = codec.getTargetCert(basePath, "pemcertificate.crt");

@@ -931,7 +931,7 @@ final class TestSecureOzoneCluster {
       String pemEncodedCACert =
           scm.getSecurityProtocolServer().getCACertificate();
       X509Certificate caCert =
-          CertificateCodec.getX509Certificate(pemEncodedCACert);
+          new SecurityConfig(conf).getCertificateCodec().getX509Certificate(pemEncodedCACert);
       X509Certificate caCertStored = om.getCertificateClient()
           .getCertificate(caCert.getSerialNumber().toString());
       assertEquals(caCert, caCertStored);
@@ -970,16 +970,19 @@ final class TestSecureOzoneCluster {
     omStorage.setOmCertSerialId(certId);
     omStorage.forceInitialize();
     CertificateCodec certCodec = new CertificateCodec(securityConfig, "om");
-    certCodec.writeCertificate(cert);
     String caCertFileName = CAType.ROOT.getFileNamePrefix() + cert.getSerialNumber().toString() + ".crt";
-    certCodec.writeCertificate(cert, caCertFileName);
+    CertificateCodec.writeCertificate(Paths.get(securityConfig.getCertificateLocation("om").toAbsolutePath().toString(),
+        securityConfig.getCertificateFileName()), certCodec.getPEMEncodedString(cert));
+
+    CertificateCodec.writeCertificate(Paths.get(certCodec.getLocation().toString(), caCertFileName),
+        certCodec.getPEMEncodedString(cert));
 
     // first renewed cert
     X509Certificate newCert =
         generateSelfSignedX509Cert(securityConfig, null,
             LocalDateTime.now().plus(securityConfig.getRenewalGracePeriod()),
             Duration.ofSeconds(certificateLifetime));
-    String pemCert = CertificateCodec.getPEMEncodedString(newCert);
+    String pemCert = certCodec.getPEMEncodedString(newCert);
     SCMGetCertResponseProto responseProto =
         SCMGetCertResponseProto.newBuilder()
             .setResponseCode(SCMSecurityProtocolProtos
@@ -1040,7 +1043,6 @@ final class TestSecureOzoneCluster {
     OzoneManager.setTestSecureOmFlag(true);
 
     SecurityConfig securityConfig = new SecurityConfig(conf);
-    CertificateCodec certCodec = new CertificateCodec(securityConfig, "om");
 
     // save first cert
     final int certificateLifetime = 20; // seconds
@@ -1050,7 +1052,8 @@ final class TestSecureOzoneCluster {
         new KeyPair(keyCodec.readPublicKey(), keyCodec.readPrivateKey()),
         null, Duration.ofSeconds(certificateLifetime));
     String certId = certHolder.getSerialNumber().toString();
-    certCodec.writeCertificate(certHolder);
+    CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, "om"),
+        securityConfig.getCertificateCodec("om").getPEMEncodedString(certHolder));
     omStorage.setOmCertSerialId(certId);
     omStorage.forceInitialize();
 
@@ -1063,7 +1066,7 @@ final class TestSecureOzoneCluster {
         securityConfig, null,
         LocalDateTime.now().plus(gracePeriod),
         Duration.ofSeconds(certificateLifetime));
-    String pemCert = CertificateCodec.getPEMEncodedString(newCertHolder);
+    String pemCert = securityConfig.getCertificateCodec("om").getPEMEncodedString(newCertHolder);
     // provide an invalid SCMGetCertResponseProto. Without
     // setX509CACertificate(pemCert), signAndStoreCert will throw exception.
     SCMSecurityProtocolProtos.SCMGetCertResponseProto responseProto =
@@ -1099,7 +1102,7 @@ final class TestSecureOzoneCluster {
       // provide a new valid SCMGetCertResponseProto
       newCertHolder = generateSelfSignedX509Cert(securityConfig, null, null,
           Duration.ofSeconds(certificateLifetime));
-      pemCert = CertificateCodec.getPEMEncodedString(newCertHolder);
+      pemCert = securityConfig.getCertificateCodec("om").getPEMEncodedString(newCertHolder);
       responseProto = SCMSecurityProtocolProtos.SCMGetCertResponseProto
           .newBuilder().setResponseCode(SCMSecurityProtocolProtos
               .SCMGetCertResponseProto.ResponseCode.success)
@@ -1135,7 +1138,7 @@ final class TestSecureOzoneCluster {
     OzoneManager.setTestSecureOmFlag(true);
 
     SecurityConfig securityConfig = new SecurityConfig(conf);
-    CertificateCodec certCodec = new CertificateCodec(securityConfig, "om");
+    CertificateCodec certificateCodec = securityConfig.getCertificateCodec();
     try (OMCertificateClient client =
              new OMCertificateClient(securityConfig, null, omStorage, omInfo, "", scmId, null, null)
     ) {
@@ -1143,11 +1146,12 @@ final class TestSecureOzoneCluster {
 
       // save first cert
       final int certificateLifetime = 20; // seconds
-      KeyPair newKeyPair = new KeyPair(client.getPublicKey(), client.getPrivateKey());
-      X509Certificate newCert =
-          generateSelfSignedX509Cert(securityConfig, newKeyPair, null, Duration.ofSeconds(certificateLifetime));
-      String certId = newCert.getSerialNumber().toString();
-      certCodec.writeCertificate(newCert);
+      X509Certificate cert = generateSelfSignedX509Cert(securityConfig,
+          new KeyPair(client.getPublicKey(), client.getPrivateKey()),
+          null, Duration.ofSeconds(certificateLifetime));
+      String certId = cert.getSerialNumber().toString();
+      certificateCodec.writeCertificate(certificateCodec.getCertFilePath(securityConfig, "om"),
+          securityConfig.getCertificateCodec("om").getPEMEncodedString(cert));
       omStorage.setOmCertSerialId(certId);
       omStorage.forceInitialize();
 
@@ -1291,18 +1295,26 @@ final class TestSecureOzoneCluster {
       // Prepare the certificates for OM before OM start
       SecurityConfig securityConfig = new SecurityConfig(conf);
       CertificateClient scmCertClient = scm.getScmCertificateClient();
-      CertificateCodec certCodec = new CertificateCodec(securityConfig, "om");
       X509Certificate scmCert = scmCertClient.getCertificate();
       X509Certificate rootCert = scmCertClient.getCACertificate();
       X509Certificate cert = signX509Cert(securityConfig, keyPair, new KeyPair(scmCertClient.getPublicKey(),
           scmCertClient.getPrivateKey()), scmCert, "om_cert", clusterId);
       String certId = cert.getSerialNumber().toString();
-      certCodec.writeCertificate(cert);
-      certCodec.writeCertificate(scmCert, String.format(DefaultCertificateClient.CERT_FILE_NAME_FORMAT,
-          CAType.SUBORDINATE.getFileNamePrefix() + scmCert.getSerialNumber().toString()));
-      certCodec.writeCertificate(scmCertClient.getCACertificate(),
-          String.format(DefaultCertificateClient.CERT_FILE_NAME_FORMAT,
-              CAType.ROOT.getFileNamePrefix() + rootCert.getSerialNumber().toString()));
+      String codecPath = securityConfig.getLocation("om").toAbsolutePath().toString();
+      CertificateCodec certificateCodec = securityConfig.getCertificateCodec();
+      certificateCodec.writeCertificate(Paths.get(codecPath, securityConfig.getCertificateFileName()),
+          securityConfig.getCertificateCodec("om").getPEMEncodedString(cert));
+      certificateCodec.writeCertificate(Paths.get(codecPath,
+              String.format(DefaultCertificateClient.CERT_FILE_NAME_FORMAT,
+                  CAType.SUBORDINATE.getFileNamePrefix() +
+                      scmCert.getSerialNumber().toString())),
+          certificateCodec.getPEMEncodedString(scmCert)
+      );
+      certificateCodec.writeCertificate(Paths.get(codecPath,
+              String.format(DefaultCertificateClient.CERT_FILE_NAME_FORMAT,
+                  CAType.ROOT.getFileNamePrefix() +
+                      rootCert.getSerialNumber().toString())),
+          certificateCodec.getPEMEncodedString(scmCertClient.getCACertificate()));
       omStore.setOmCertSerialId(certId);
       omStore.initialize();
 
@@ -1334,7 +1346,7 @@ final class TestSecureOzoneCluster {
 
         ServiceInfoEx serviceInfoEx = client.getObjectStore()
             .getClientProxy().getOzoneManagerClient().getServiceInfo();
-        assertEquals(CertificateCodec.getPEMEncodedString(caCert), serviceInfoEx.getCaCertificate());
+        assertEquals(certificateCodec.getPEMEncodedString(caCert), serviceInfoEx.getCaCertificate());
 
         // Wait for OM certificate to renewed
         GenericTestUtils.waitFor(() ->
@@ -1345,7 +1357,7 @@ final class TestSecureOzoneCluster {
         // rerun the command using old client, it should succeed
         serviceInfoEx = client.getObjectStore()
             .getClientProxy().getOzoneManagerClient().getServiceInfo();
-        assertEquals(CertificateCodec.getPEMEncodedString(caCert), serviceInfoEx.getCaCertificate());
+        assertEquals(certificateCodec.getPEMEncodedString(caCert), serviceInfoEx.getCaCertificate());
       }
 
       // get new client, it should succeed.

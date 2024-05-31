@@ -129,8 +129,8 @@ public class TestDnCertificateClientInit {
     }
 
     if (certPresent) {
-      CertificateCodec codec = new CertificateCodec(securityConfig, DN_COMPONENT);
-      codec.writeCertificate(x509Certificate);
+      String certPem = securityConfig.getCertificateCodec().getPEMEncodedString(x509Certificate);
+      CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, DN_COMPONENT), certPem);
     } else {
       FileUtils.deleteQuietly(Paths.get(
           securityConfig.getKeyLocation(DN_COMPONENT).toString(),

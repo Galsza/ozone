@@ -22,9 +22,12 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Proto2Utils;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
 
+import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
 import java.security.cert.X509Certificate;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec.DEFAULT_CHARSET;
 
 /**
  * Codec for type X509Certificate.
@@ -35,7 +38,7 @@ public class X509CertificateCodec implements Codec {
       throws InvalidProtocolBufferException {
     try {
       String certString =
-          CertificateCodec.getPEMEncodedString((X509Certificate) object);
+          CertificateCodec.writePEMEncoded((X509Certificate) object, new StringWriter()).toString();
       // getBytes returns a new array
       return Proto2Utils.unsafeByteString(certString.getBytes(UTF_8));
     } catch (Exception ex) {
@@ -49,7 +52,8 @@ public class X509CertificateCodec implements Codec {
       throws InvalidProtocolBufferException {
     try {
       String pemEncodedCert = new String(value.toByteArray(), UTF_8);
-      return CertificateCodec.getX509Certificate(pemEncodedCert);
+      return CertificateCodec.readX509Certificate(new ByteArrayInputStream(
+          pemEncodedCert.getBytes(DEFAULT_CHARSET)));
     } catch (Exception ex) {
       throw new InvalidProtocolBufferException(
           "X509Certificate cannot be decoded: " + ex.getMessage());
