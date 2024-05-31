@@ -219,30 +219,6 @@ public class CertificateCodec {
     return location;
   }
 
-  public void writeCertificate(X509Certificate xCertificate) throws IOException {
-    String pem = getPEMEncodedString(xCertificate);
-    writeCertificate(location.toAbsolutePath(),
-        this.securityConfig.getCertificateFileName(), pem);
-  }
-
-  public void writeCertificate(X509Certificate xCertificate, String fileName) throws IOException {
-    String pem = getPEMEncodedString(xCertificate);
-    writeCertificate(location.toAbsolutePath(), fileName, pem);
-  }
-
-  public void writeCertificate(X509Certificate xCertificate, String fileName) throws IOException {
-    String pem = getPEMEncodedString(xCertificate);
-    writeCertificate(location.toAbsolutePath(), fileName, pem);
-  }
-
-  /**
-   * Write the pem encoded string to the specified file.
-   */
-  public void writeCertificate(String fileName, String pemEncodedCert)
-      throws IOException {
-    writeCertificate(location.toAbsolutePath(), fileName, pemEncodedCert);
-  }
-
   /**
    * Helper function that writes data to the file.
    *
@@ -340,7 +316,7 @@ public class CertificateCodec {
     return getTargetCert(location, securityConfig.getCertificateFileName());
   }
 
-  private static CertPath generateCertPathFromInputStream(InputStream inputStream) throws CertificateException {
+  public static CertPath generateCertPathFromInputStream(InputStream inputStream) throws CertificateException {
     return getCertFactory().generateCertPath(inputStream, "PEM");
   }
 

@@ -124,7 +124,7 @@ public class TestCertificateCodec {
     String pemString = codec.getPEMEncodedString(cert);
     Path path = Paths.get(basePath.toString(), "pemcertificate.crt");
     CertificateCodec.writeCertificate(path, pemString);
-    X509Certificate loadedCertificate = codec.getTargetCertHolder(basePath, "pemcertificate.crt");
+    X509Certificate loadedCertificate = codec.getTargetCert(basePath, "pemcertificate.crt");
 
     assertNotNull(loadedCertificate);
     assertEquals(cert.getSerialNumber(), loadedCertificate.getSerialNumber());
@@ -139,7 +139,7 @@ public class TestCertificateCodec {
     CertificateCodec codec = new CertificateCodec(securityConfig, COMPONENT);
     codec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
         codec.getPEMEncodedString(cert));
-    X509Certificate loadedCertificate = codec.getTargetCertHolder();
+    X509Certificate loadedCertificate = codec.getTargetCert();
 
     assertNotNull(loadedCertificate);
     assertEquals(cert.getSerialNumber(), loadedCertificate.getSerialNumber());
@@ -157,7 +157,7 @@ public class TestCertificateCodec {
     certificateStorage.writeCertificate(
         Paths.get(codec.getLocation().toAbsolutePath().toString(), "newcert.crt"), codec.getPEMEncodedString(cert));
 
-    X509Certificate loadedCertificate = codec.getTargetCertHolder(codec.getLocation(), "newcert.crt");
+    X509Certificate loadedCertificate = codec.getTargetCert(codec.getLocation(), "newcert.crt");
 
     assertNotNull(loadedCertificate);
   }
