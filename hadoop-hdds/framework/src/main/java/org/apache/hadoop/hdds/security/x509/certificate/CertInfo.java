@@ -66,7 +66,7 @@ public final class CertInfo implements Comparable<CertInfo>, Serializable {
 
   public CertInfoProto getProtobuf() throws IOException {
     return CertInfoProto.newBuilder()
-        .setX509Certificate(CertificateCodec.writePEMEncoded(x509Certificate, new StringWriter()).toString())
+        .setX509Certificate(CertificateCodec.writePEMEncoded(getX509Certificate(), new StringWriter()).toString())
         .setTimestamp(getTimestamp())
         .build();
   }

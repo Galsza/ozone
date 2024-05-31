@@ -172,8 +172,7 @@ public class SCMCertificateClient extends DefaultCertificateClient {
   }
 
   @Override
-  public String signAndStoreCertificate(PKCS10CertificationRequest request,
-                                        Path certWritePath, boolean renew) throws CertificateException {
+  public String signAndStoreCertificate(PKCS10CertificationRequest request, Path certWritePath, boolean renew) {
     try {
       HddsProtos.ScmNodeDetailsProto scmNodeDetailsProto =
           HddsProtos.ScmNodeDetailsProto.newBuilder()

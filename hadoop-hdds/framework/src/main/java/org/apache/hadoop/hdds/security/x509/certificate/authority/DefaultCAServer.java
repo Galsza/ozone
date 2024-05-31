@@ -545,7 +545,7 @@ public class DefaultCAServer implements CertificateServer {
           config.getCertificateFileName());
       CertificateStorage certificateStorage = new CertificateStorage(conf);
       certificateStorage.writeCertificate(
-          path, conf.getCertificateCodec(componentName).getPEMEncodedString(certificate));
+          path, certificateCodec.getPEMEncodedString(certificate));
     } catch (IOException | CertificateException | NoSuchAlgorithmException |
              InvalidKeySpecException e) {
       LOG.error("External root CA certificate initialization failed", e);
