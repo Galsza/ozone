@@ -927,10 +927,10 @@ final class TestSecureOzoneCluster {
           .contains("Successfully stored OM signed certificate");
       X509Certificate certificate = om.getCertificateClient().getCertificate();
       validateCertificate(certificate);
-      String pemEncodedCACert =
-          scm.getSecurityProtocolServer().getCACertificate();
-      X509Certificate caCert =
-          new SecurityConfig(conf).getCertificateCodec().getX509Certificate(pemEncodedCACert);
+      String pemEncodedCACert = scm.getSecurityProtocolServer().getCACertificate();
+      SecurityConfig securityConfig = new SecurityConfig(conf);
+      CertificateCodec certificateCodec = securityConfig.getCertificateCodec();
+      X509Certificate caCert = certificateCodec.getX509Certificate(pemEncodedCACert);
       X509Certificate caCertStored = om.getCertificateClient()
           .getCertificate(caCert.getSerialNumber().toString());
       assertEquals(caCert, caCertStored);
@@ -968,7 +968,7 @@ final class TestSecureOzoneCluster {
     String certId = cert.getSerialNumber().toString();
     omStorage.setOmCertSerialId(certId);
     omStorage.forceInitialize();
-    CertificateCodec certCodec = new CertificateCodec(securityConfig);
+    CertificateCodec certCodec = securityConfig.getCertificateCodec();
     String caCertFileName = CAType.ROOT.getFileNamePrefix() + cert.getSerialNumber().toString() + ".crt";
     Path certificateLocation = securityConfig.getCertificateLocation("om");
     CertificateCodec.writeCertificate(Paths.get(certificateLocation.toAbsolutePath().toString(),
@@ -1053,8 +1053,9 @@ final class TestSecureOzoneCluster {
         new KeyPair(keyCodec.readPublicKey(), keyCodec.readPrivateKey()),
         null, Duration.ofSeconds(certificateLifetime));
     String certId = certHolder.getSerialNumber().toString();
+    CertificateCodec certificateCodec = securityConfig.getCertificateCodec();
     CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, "om"),
-        securityConfig.getCertificateCodec().getPEMEncodedString(certHolder));
+        certificateCodec.getPEMEncodedString(certHolder));
     omStorage.setOmCertSerialId(certId);
     omStorage.forceInitialize();
 
@@ -1067,7 +1068,7 @@ final class TestSecureOzoneCluster {
         securityConfig, null,
         LocalDateTime.now().plus(gracePeriod),
         Duration.ofSeconds(certificateLifetime));
-    String pemCert = securityConfig.getCertificateCodec().getPEMEncodedString(newCertHolder);
+    String pemCert = certificateCodec.getPEMEncodedString(newCertHolder);
     // provide an invalid SCMGetCertResponseProto. Without
     // setX509CACertificate(pemCert), signAndStoreCert will throw exception.
     SCMSecurityProtocolProtos.SCMGetCertResponseProto responseProto =
@@ -1103,7 +1104,7 @@ final class TestSecureOzoneCluster {
       // provide a new valid SCMGetCertResponseProto
       newCertHolder = generateSelfSignedX509Cert(securityConfig, null, null,
           Duration.ofSeconds(certificateLifetime));
-      pemCert = securityConfig.getCertificateCodec().getPEMEncodedString(newCertHolder);
+      pemCert = certificateCodec.getPEMEncodedString(newCertHolder);
       responseProto = SCMSecurityProtocolProtos.SCMGetCertResponseProto
           .newBuilder().setResponseCode(SCMSecurityProtocolProtos
               .SCMGetCertResponseProto.ResponseCode.success)
@@ -1152,7 +1153,7 @@ final class TestSecureOzoneCluster {
           null, Duration.ofSeconds(certificateLifetime));
       String certId = cert.getSerialNumber().toString();
       certificateCodec.writeCertificate(certificateCodec.getCertFilePath(securityConfig, "om"),
-          securityConfig.getCertificateCodec().getPEMEncodedString(cert));
+          certificateCodec.getPEMEncodedString(cert));
       omStorage.setOmCertSerialId(certId);
       omStorage.forceInitialize();
 
@@ -1304,7 +1305,7 @@ final class TestSecureOzoneCluster {
       String codecPath = securityConfig.getLocation("om").toAbsolutePath().toString();
       CertificateCodec certificateCodec = securityConfig.getCertificateCodec();
       certificateCodec.writeCertificate(Paths.get(codecPath, securityConfig.getCertificateFileName()),
-          securityConfig.getCertificateCodec().getPEMEncodedString(cert));
+          certificateCodec.getPEMEncodedString(cert));
       certificateCodec.writeCertificate(Paths.get(codecPath,
               String.format(DefaultCertificateClient.CERT_FILE_NAME_FORMAT,
                   CAType.SUBORDINATE.getFileNamePrefix() +

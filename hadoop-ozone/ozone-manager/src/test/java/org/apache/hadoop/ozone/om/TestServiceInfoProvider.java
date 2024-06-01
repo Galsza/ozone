@@ -76,8 +76,9 @@ public class TestServiceInfoProvider {
     @BeforeEach
     public void setup() throws Exception {
       conf.setBoolean(OZONE_SECURITY_ENABLED_KEY, false);
-      provider = new ServiceInfoProvider(new SecurityConfig(conf), om, null);
-      certificateCodec = new SecurityConfig(conf).getCertificateCodec();
+      SecurityConfig config = new SecurityConfig(conf);
+      provider = new ServiceInfoProvider(config, om, null);
+      certificateCodec = config.getCertificateCodec();
     }
 
     @Test
@@ -107,15 +108,14 @@ public class TestServiceInfoProvider {
     public void setup() throws Exception {
       conf.setBoolean(OZONE_SECURITY_ENABLED_KEY, true);
       certClient = mock(CertificateClient.class);
-      certificateCodec = new SecurityConfig(conf).getCertificateCodec();
+      SecurityConfig config = new SecurityConfig(conf);
+      certificateCodec = config.getCertificateCodec();
       cert1 = createSelfSignedCert(aKeyPair(conf), "1st", Duration.ofDays(1));
       pem1 = certificateCodec.getPEMEncodedString(cert1);
       cert2 = createSelfSignedCert(aKeyPair(conf), "2nd", Duration.ofDays(2));
       pem2 = certificateCodec.getPEMEncodedString(cert2);
-      when(certClient.getAllRootCaCerts())
-          .thenReturn(new HashSet<>(Arrays.asList(cert1, cert2)));
-      provider =
-          new ServiceInfoProvider(new SecurityConfig(conf), om, certClient);
+      when(certClient.getAllRootCaCerts()).thenReturn(new HashSet<>(Arrays.asList(cert1, cert2)));
+      provider = new ServiceInfoProvider(config, om, certClient);
     }
 
     @Test

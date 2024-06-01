@@ -256,8 +256,8 @@ public class SCMCertificateClient extends DefaultCertificateClient {
         for (X509Certificate cert : rootCAsFromLeaderSCM) {
           LOG.info("Fetched new root CA certificate {} from leader SCM",
               cert.getSerialNumber().toString());
-          storeCertificate(
-              getSecurityConfig().getCertificateCodec().getPEMEncodedString(cert), CAType.SUBORDINATE);
+          CertificateCodec certificateCodec = getSecurityConfig().getCertificateCodec();
+          storeCertificate(certificateCodec.getPEMEncodedString(cert), CAType.SUBORDINATE);
         }
         String scmCertId = getCertificate().getSerialNumber().toString();
         notifyNotificationReceivers(scmCertId, scmCertId);
@@ -357,9 +357,7 @@ public class SCMCertificateClient extends DefaultCertificateClient {
       CertPath scmSubCACertPath = rootCAServer.requestCertificate(
           csr, KERBEROS_TRUSTED, SCM,
           BigInteger.ONE.add(BigInteger.ONE).toString()).get();
-      String pemEncodedCert =
-          certificateCodec.getPEMEncodedString(scmSubCACertPath);
-
+      String pemEncodedCert = certificateCodec.getPEMEncodedString(scmSubCACertPath);
       storeCertificate(pemEncodedRootCert, CAType.SUBORDINATE);
       storeCertificate(pemEncodedCert, CAType.NONE);
       //note: this does exactly the same as store certificate

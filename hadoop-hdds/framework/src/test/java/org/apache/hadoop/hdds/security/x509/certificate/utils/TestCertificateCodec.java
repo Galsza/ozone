@@ -99,12 +99,12 @@ public class TestCertificateCodec {
    */
   @Test
   public void testPrependCertificateToCertPath() throws Exception {
-    CertificateCodec codec = new CertificateCodec(securityConfig);
+    CertificateCodec codec = securityConfig.getCertificateCodec();
     X509Certificate initialCert = generateTestCert();
     X509Certificate prependedCert = generateTestCert();
-    CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
-        securityConfig.getCertificateCodec().getPEMEncodedString(initialCert));
     CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
+    certificateStorage.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
+        codec.getPEMEncodedString(initialCert));
     CertPath initialPath = certificateStorage.getCertPath(COMPONENT, securityConfig.getCertificateFileName());
     CertPath pathWithPrependedCert =
         codec.prependCertToCertPath(prependedCert, initialPath);
@@ -120,7 +120,7 @@ public class TestCertificateCodec {
   @Test
   public void testWriteCertificate(@TempDir Path basePath) throws Exception {
     X509Certificate cert = generateTestCert();
-    CertificateCodec codec = new CertificateCodec(securityConfig);
+    CertificateCodec codec = securityConfig.getCertificateCodec();
     String pemString = codec.getPEMEncodedString(cert);
     Path path = Paths.get(basePath.toString(), "pemcertificate.crt");
     CertificateCodec.writeCertificate(path, pemString);
@@ -136,7 +136,7 @@ public class TestCertificateCodec {
   @Test
   public void testWriteCertificateDefault() throws Exception {
     X509Certificate cert = generateTestCert();
-    CertificateCodec codec = new CertificateCodec(securityConfig);
+    CertificateCodec codec = securityConfig.getCertificateCodec();
     codec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
         codec.getPEMEncodedString(cert));
     X509Certificate loadedCertificate = codec.getTargetCert(
@@ -152,7 +152,7 @@ public class TestCertificateCodec {
   @Test
   public void writeCertificate2() throws Exception {
     X509Certificate cert = generateTestCert();
-    CertificateCodec codec = new CertificateCodec(securityConfig);
+    CertificateCodec codec = securityConfig.getCertificateCodec();
     CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
     // Rewrite with force support
     Path certificateLocation = securityConfig.getCertificateLocation("ca");
@@ -181,8 +181,7 @@ public class TestCertificateCodec {
 
     //When prepending the second one before the first one and reading them back
     CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
-    CertificateCodec codec =
-        new CertificateCodec(securityConfig);
+    CertificateCodec codec = securityConfig.getCertificateCodec();
     Path certificateLocation = securityConfig.getCertificateLocation("ca");
 
     CertPath updatedCertPath = codec.prependCertToCertPath(certToPrepend, certPath);

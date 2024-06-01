@@ -25,6 +25,7 @@ import org.apache.hadoop.hdds.protocol.proto.SCMSecurityProtocolProtos.SCMGetCer
 import org.apache.hadoop.hdds.protocolPB.SCMSecurityProtocolClientSideTranslatorPB;
 import org.apache.hadoop.hdds.security.x509.certificate.authority.CAType;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
+import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateStorage;
 import org.apache.hadoop.hdds.security.x509.exception.CertificateException;
 import org.apache.hadoop.hdds.security.x509.keys.KeyCodec;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -546,8 +547,9 @@ public class TestDefaultCertificateClient {
     String compName = "test";
 
     X509Certificate cert = generateX509Cert(null);
-    String certPem = conf.getCertificateCodec().getPEMEncodedString(cert);
-    CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(conf, compName), certPem);
+    String certPem = certificateCodec.getPEMEncodedString(cert);
+    CertificateStorage certificateStorage = new CertificateStorage(conf);
+    certificateStorage.writeCertificate(CertificateCodec.getCertFilePath(conf, compName), certPem);
 
     Logger logger = mock(Logger.class);
     String certId = cert.getSerialNumber().toString();

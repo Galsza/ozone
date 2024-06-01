@@ -61,9 +61,11 @@ public class CertificateStorage {
           .collect(Collectors.toSet());
 
   private final SecurityConfig config;
+  private final CertificateCodec certificateCodec;
 
   public CertificateStorage(SecurityConfig conf) {
     this.config = conf;
+    this.certificateCodec = conf.getCertificateCodec();
   }
 
   /**
@@ -76,8 +78,6 @@ public class CertificateStorage {
    */
   public synchronized CertPath writeCertificate(Path basePath, String pemEncodedCertificate, CAType caType)
       throws IOException {
-
-    CertificateCodec certificateCodec = config.getCertificateCodec();
     CertPath certPath = certificateCodec.getCertPathFromPemEncodedString(pemEncodedCertificate);
 
     X509Certificate cert = (X509Certificate) certPath.getCertificates().get(0);
@@ -106,9 +106,12 @@ public class CertificateStorage {
     Files.setPosixFilePermissions(certificateFile.toPath(), PERMISSION_SET);
   }
 
-  public CertPath getCertPath(String componentName, String fileName) throws IOException,
-      CertificateException {
+  public CertPath getCertPath(String componentName, String fileName) throws IOException, CertificateException {
     Path path = config.getCertificateLocation(componentName);
+    return getCertPath(path, fileName);
+  }
+
+  public CertPath getCertPath(Path path, String fileName) throws IOException, CertificateException {
     checkBasePathDirectory(path.toAbsolutePath());
     File certFile =
         Paths.get(path.toAbsolutePath().toString(), fileName).toFile();
@@ -117,8 +120,14 @@ public class CertificateStorage {
           "Path: " + certFile);
     }
     try (FileInputStream is = new FileInputStream(certFile)) {
-      return config.getCertificateCodec().generateCertPathFromInputStream(is);
+      return certificateCodec.generateCertPathFromInputStream(is);
     }
+  }
+
+  public X509Certificate getFirstCertFromCertPath(Path path, String fileName)
+      throws IOException, CertificateException {
+    CertPath certPath = getCertPath(path, fileName);
+    return (X509Certificate) certPath.getCertificates().get(0);
   }
 
   private static void checkBasePathDirectory(Path basePath) throws IOException {
