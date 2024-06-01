@@ -128,8 +128,8 @@ public class TestHddsSecureDatanodeInit {
       return null;
     });
     dnLogs = GenericTestUtils.LogCapturer.captureLogs(
-        ((DNCertificateClient)service.getCertificateClient()).getLogger());
-    certCodec = new CertificateCodec(securityConfig, DN_COMPONENT);
+        ((DNCertificateClient) service.getCertificateClient()).getLogger());
+    certCodec = new CertificateCodec(securityConfig);
     keyCodec = new KeyCodec(securityConfig, DN_COMPONENT);
     dnLogs.clearOutput();
     privateKey = service.getCertificateClient().getPrivateKey();
@@ -233,7 +233,7 @@ public class TestHddsSecureDatanodeInit {
     keyCodec.writePrivateKey(privateKey);
     // provide a new valid SCMGetCertResponseProto
     X509Certificate newCert = generateX509Cert(null, null, Duration.ofSeconds(CERT_LIFETIME));
-    String pemCert = securityConfig.getCertificateCodec(DN_COMPONENT).getPEMEncodedString(newCert);
+    String pemCert = securityConfig.getCertificateCodec().getPEMEncodedString(newCert);
     // provide an invalid SCMGetCertResponseProto. Without
     // setX509CACertificate(pemCert), signAndStoreCert will throw exception.
     SCMSecurityProtocolProtos.SCMGetCertResponseProto responseProto =
@@ -358,7 +358,7 @@ public class TestHddsSecureDatanodeInit {
     // test the second time certificate rotation, generate a new cert
     newCert = generateX509Cert(null, null, Duration.ofSeconds(CERT_LIFETIME));
     rootCaList.remove(pemCert);
-    pemCert = securityConfig.getCertificateCodec(DN_COMPONENT).getPEMEncodedString(newCert);
+    pemCert = securityConfig.getCertificateCodec().getPEMEncodedString(newCert);
     responseProto = SCMSecurityProtocolProtos.SCMGetCertResponseProto
         .newBuilder().setResponseCode(SCMSecurityProtocolProtos
             .SCMGetCertResponseProto.ResponseCode.success)
@@ -396,7 +396,7 @@ public class TestHddsSecureDatanodeInit {
     X509Certificate newCert = generateX509Cert(null,
         LocalDateTime.now().plus(gracePeriod),
         Duration.ofSeconds(CERT_LIFETIME));
-    String pemCert = securityConfig.getCertificateCodec(DN_COMPONENT).getPEMEncodedString(cert);
+    String pemCert = securityConfig.getCertificateCodec().getPEMEncodedString(cert);
     // provide an invalid SCMGetCertResponseProto. Without
     // setX509CACertificate(pemCert), signAndStoreCert will throw exception.
     SCMSecurityProtocolProtos.SCMGetCertResponseProto responseProto =
@@ -426,7 +426,7 @@ public class TestHddsSecureDatanodeInit {
 
     // provide a new valid SCMGetCertResponseProto
     newCert = generateX509Cert(null, null, Duration.ofSeconds(CERT_LIFETIME));
-    pemCert = securityConfig.getCertificateCodec(DN_COMPONENT).getPEMEncodedString(newCert);
+    pemCert = securityConfig.getCertificateCodec().getPEMEncodedString(newCert);
     responseProto = SCMSecurityProtocolProtos.SCMGetCertResponseProto
         .newBuilder().setResponseCode(SCMSecurityProtocolProtos
             .SCMGetCertResponseProto.ResponseCode.success)
@@ -466,6 +466,6 @@ public class TestHddsSecureDatanodeInit {
     String path = securityConfig.getCertificateLocation(DN_COMPONENT).toAbsolutePath().toString();
     String certFileName = securityConfig.getCertificateFileName();
     certCodec.writeCertificate(Paths.get(path, certFileName),
-        securityConfig.getCertificateCodec(DN_COMPONENT).getPEMEncodedString(cert));
+        securityConfig.getCertificateCodec().getPEMEncodedString(cert));
   }
 }

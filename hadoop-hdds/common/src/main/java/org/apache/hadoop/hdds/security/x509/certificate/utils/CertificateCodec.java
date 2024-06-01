@@ -71,7 +71,6 @@ public class CertificateCodec {
   private static final Logger LOG =
       LoggerFactory.getLogger(CertificateCodec.class);
   private final SecurityConfig securityConfig;
-  private final Path location;
   private static final Set<PosixFilePermission> PERMISSION_SET =
       Stream.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE)
           .collect(Collectors.toSet());
@@ -79,23 +78,10 @@ public class CertificateCodec {
   /**
    * Creates a CertificateCodec with component name.
    *
-   * @param config    - Security Config.
-   * @param component - Component String.
+   * @param config - Security Config.
    */
-  public CertificateCodec(SecurityConfig config, String component) {
-    this.securityConfig = config;
-    this.location = securityConfig.getCertificateLocation(component);
-  }
-
-  //Use this only during the refactoring
   public CertificateCodec(SecurityConfig config) {
     this.securityConfig = config;
-    this.location = Paths.get("");
-  }
-
-  public CertificateCodec(SecurityConfig config, Path certPath) {
-    this.securityConfig = config;
-    this.location = certPath;
   }
 
   /**
@@ -211,15 +197,6 @@ public class CertificateCodec {
   }
 
   /**
-   * Get Certificate location.
-   *
-   * @return Path
-   */
-  public Path getLocation() {
-    return location;
-  }
-
-  /**
    * Helper function that writes data to the file.
    *
    * @param basePath              - Base Path where the file needs to written
@@ -244,12 +221,10 @@ public class CertificateCodec {
   /**
    * Gets a certificate path from the specified pem encoded String.
    */
-  public CertPath getCertPathFromPemEncodedString(
-      String pemString) throws IOException {
+  public CertPath getCertPathFromPemEncodedString(String pemString) throws IOException {
     // ByteArrayInputStream.close(), which is a noop, can be safely ignored.
     try {
-      return generateCertPathFromInputStream(
-          new ByteArrayInputStream(pemString.getBytes(DEFAULT_CHARSET)));
+      return generateCertPathFromInputStream(new ByteArrayInputStream(pemString.getBytes(DEFAULT_CHARSET)));
     } catch (CertificateException e) {
       throw new IOException(e);
     }
@@ -267,21 +242,6 @@ public class CertificateCodec {
     try (FileInputStream is = new FileInputStream(certFile)) {
       return generateCertPathFromInputStream(is);
     }
-  }
-
-  /**
-   * Get the certificate path stored under the specified filename.
-   */
-  public CertPath getCertPath(String fileName)
-      throws IOException, CertificateException {
-    return getCertPath(location, fileName);
-  }
-
-  /**
-   * Get the default certificate path for this cert codec.
-   */
-  public CertPath getCertPath() throws CertificateException, IOException {
-    return getCertPath(this.securityConfig.getCertificateFileName());
   }
 
   /**
@@ -306,14 +266,6 @@ public class CertificateCodec {
   public X509Certificate getTargetCert(Path path, String fileName) throws CertificateException, IOException {
     CertPath certPath = getCertPath(path, fileName);
     return firstCertificateFrom(certPath);
-  }
-
-  /**
-   * Helper method that gets one certificate from the default location.
-   * The remaining certificates are ignored.
-   */
-  public X509Certificate getTargetCert() throws CertificateException, IOException {
-    return getTargetCert(location, securityConfig.getCertificateFileName());
   }
 
   public static CertPath generateCertPathFromInputStream(InputStream inputStream) throws CertificateException {

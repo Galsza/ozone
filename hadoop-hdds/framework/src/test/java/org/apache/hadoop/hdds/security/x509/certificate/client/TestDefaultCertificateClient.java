@@ -546,7 +546,7 @@ public class TestDefaultCertificateClient {
     String compName = "test";
 
     X509Certificate cert = generateX509Cert(null);
-    String certPem = conf.getCertificateCodec(compName).getPEMEncodedString(cert);
+    String certPem = conf.getCertificateCodec().getPEMEncodedString(cert);
     CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(conf, compName), certPem);
 
     Logger logger = mock(Logger.class);

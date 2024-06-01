@@ -99,11 +99,11 @@ public class TestCertificateCodec {
    */
   @Test
   public void testPrependCertificateToCertPath() throws Exception {
-    CertificateCodec codec = new CertificateCodec(securityConfig, COMPONENT);
+    CertificateCodec codec = new CertificateCodec(securityConfig);
     X509Certificate initialCert = generateTestCert();
     X509Certificate prependedCert = generateTestCert();
     CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
-        securityConfig.getCertificateCodec("test").getPEMEncodedString(initialCert));
+        securityConfig.getCertificateCodec().getPEMEncodedString(initialCert));
     CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
     CertPath initialPath = certificateStorage.getCertPath(COMPONENT, securityConfig.getCertificateFileName());
     CertPath pathWithPrependedCert =
@@ -120,7 +120,7 @@ public class TestCertificateCodec {
   @Test
   public void testWriteCertificate(@TempDir Path basePath) throws Exception {
     X509Certificate cert = generateTestCert();
-    CertificateCodec codec = new CertificateCodec(securityConfig, COMPONENT);
+    CertificateCodec codec = new CertificateCodec(securityConfig);
     String pemString = codec.getPEMEncodedString(cert);
     Path path = Paths.get(basePath.toString(), "pemcertificate.crt");
     CertificateCodec.writeCertificate(path, pemString);
@@ -136,10 +136,11 @@ public class TestCertificateCodec {
   @Test
   public void testWriteCertificateDefault() throws Exception {
     X509Certificate cert = generateTestCert();
-    CertificateCodec codec = new CertificateCodec(securityConfig, COMPONENT);
+    CertificateCodec codec = new CertificateCodec(securityConfig);
     codec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
         codec.getPEMEncodedString(cert));
-    X509Certificate loadedCertificate = codec.getTargetCert();
+    X509Certificate loadedCertificate = codec.getTargetCert(
+        securityConfig.getCertificateLocation(COMPONENT), securityConfig.getCertificateFileName());
 
     assertNotNull(loadedCertificate);
     assertEquals(cert.getSerialNumber(), loadedCertificate.getSerialNumber());
@@ -151,13 +152,15 @@ public class TestCertificateCodec {
   @Test
   public void writeCertificate2() throws Exception {
     X509Certificate cert = generateTestCert();
-    CertificateCodec codec = new CertificateCodec(securityConfig, "ca");
+    CertificateCodec codec = new CertificateCodec(securityConfig);
     CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
     // Rewrite with force support
+    Path certificateLocation = securityConfig.getCertificateLocation("ca");
     certificateStorage.writeCertificate(
-        Paths.get(codec.getLocation().toAbsolutePath().toString(), "newcert.crt"), codec.getPEMEncodedString(cert));
+        Paths.get(certificateLocation.toAbsolutePath().toString(), "newcert.crt"),
+        codec.getPEMEncodedString(cert));
 
-    X509Certificate loadedCertificate = codec.getTargetCert(codec.getLocation(), "newcert.crt");
+    X509Certificate loadedCertificate = codec.getTargetCert(certificateLocation, "newcert.crt");
 
     assertNotNull(loadedCertificate);
   }
@@ -179,14 +182,15 @@ public class TestCertificateCodec {
     //When prepending the second one before the first one and reading them back
     CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
     CertificateCodec codec =
-        new CertificateCodec(securityConfig, "ca");
+        new CertificateCodec(securityConfig);
+    Path certificateLocation = securityConfig.getCertificateLocation("ca");
 
     CertPath updatedCertPath = codec.prependCertToCertPath(certToPrepend, certPath);
 
     String certFileName = "newcert.crt";
     String pemEncodedStrings =
         codec.getPEMEncodedString(updatedCertPath);
-    certificateStorage.writeCertificate(Paths.get(codec.getLocation().toAbsolutePath().toString(), certFileName),
+    certificateStorage.writeCertificate(Paths.get(certificateLocation.toAbsolutePath().toString(), certFileName),
         pemEncodedStrings);
 
     CertPath rereadCertPath =

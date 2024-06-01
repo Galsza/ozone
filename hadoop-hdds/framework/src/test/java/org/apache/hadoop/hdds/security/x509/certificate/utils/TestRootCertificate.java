@@ -146,7 +146,7 @@ public class TestRootCertificate {
     // serial number is the expected number.
     assertEquals(BigInteger.ONE, certificate.getSerialNumber());
 
-    CertificateCodec codec = new CertificateCodec(securityConfig, "scm");
+    CertificateCodec codec = new CertificateCodec(securityConfig);
     String pemString = codec.getPEMEncodedString(certificate);
 
     CertificateCodec.writeCertificate(Paths.get(basePath.toString(), "pemcertificate.crt"),

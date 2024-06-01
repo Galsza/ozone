@@ -607,10 +607,6 @@ public class SecurityConfig {
     return blockTokenEnabled || containerTokenEnabled;
   }
 
-  public CertificateCodec getCertificateCodec(String componentName) {
-    return new CertificateCodec(this, componentName);
-  }
-
   public CertificateCodec getCertificateCodec() {
     return new CertificateCodec(this);
   }
