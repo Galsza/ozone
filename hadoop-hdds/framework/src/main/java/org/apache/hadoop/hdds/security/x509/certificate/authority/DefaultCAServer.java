@@ -544,7 +544,7 @@ public class DefaultCAServer implements CertificateServer {
       publicKey = readPublicKeyWithExternalData(
           externalPublicKeyLocation, keyCodec, certificate);
       keyCodec.writeKey(new KeyPair(publicKey, privateKey));
-      Path path = Paths.get(config.getLocation(componentName).toAbsolutePath().toString(),
+      Path path = Paths.get(conf.getCertificateLocation(componentName).toAbsolutePath().toString(),
           config.getCertificateFileName());
       certificateStorage.writeCertificate(
           path, certificateCodec.getPEMEncodedString(certificate));
