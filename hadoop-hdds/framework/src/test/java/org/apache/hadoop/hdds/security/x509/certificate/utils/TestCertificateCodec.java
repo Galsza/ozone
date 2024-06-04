@@ -162,7 +162,7 @@ public class TestCertificateCodec {
         Paths.get(certificateLocation.toAbsolutePath().toString(), "newcert.crt"),
         codec.getPEMEncodedString(cert));
 
-    X509Certificate loadedCertificate = codec.getTargetCert(certificateLocation, "newcert.crt");
+    X509Certificate loadedCertificate = certificateStorage.getFirstCertFromCertPath(certificateLocation, "newcert.crt");
 
     assertNotNull(loadedCertificate);
   }

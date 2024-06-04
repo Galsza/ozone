@@ -153,7 +153,7 @@ public class TestRootCertificate {
     certificateStorage.writeCertificate(Paths.get(basePath.toString(), "pemcertificate.crt"),
         pemString);
 
-    X509Certificate loadedCert = codec.getTargetCert(basePath, "pemcertificate.crt");
+    X509Certificate loadedCert = certificateStorage.getFirstCertFromCertPath(basePath, "pemcertificate.crt");
     assertNotNull(loadedCert);
     assertEquals(certificate.getSerialNumber(),
         loadedCert.getSerialNumber());

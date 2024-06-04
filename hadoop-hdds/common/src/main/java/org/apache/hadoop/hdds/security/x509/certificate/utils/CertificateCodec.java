@@ -27,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,8 +35,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertPath;
@@ -206,20 +202,6 @@ public class CertificateCodec {
     }
   }
 
-  private CertPath getCertPath(Path path, String fileName) throws IOException,
-      CertificateException {
-    checkBasePathDirectory(path.toAbsolutePath());
-    File certFile =
-        Paths.get(path.toAbsolutePath().toString(), fileName).toFile();
-    if (!certFile.exists()) {
-      throw new IOException("Unable to find the requested certificate file. " +
-          "Path: " + certFile);
-    }
-    try (FileInputStream is = new FileInputStream(certFile)) {
-      return generateCertPathFromInputStream(is);
-    }
-  }
-
   /**
    * Helper method that takes in a certificate path and a certificate and
    * generates a new certificate path starting with the new certificate
@@ -235,26 +217,7 @@ public class CertificateCodec {
     return getCertFactory().generateCertPath(updatedList);
   }
 
-  /**
-   * Helper method that gets one certificate from the specified location.
-   * The remaining certificates are ignored.
-   */
-  public X509Certificate getTargetCert(Path path, String fileName) throws CertificateException, IOException {
-    CertPath certPath = getCertPath(path, fileName);
-    return firstCertificateFrom(certPath);
-  }
-
   public static CertPath generateCertPathFromInputStream(InputStream inputStream) throws CertificateException {
     return getCertFactory().generateCertPath(inputStream, "PEM");
-  }
-
-  private static void checkBasePathDirectory(Path basePath) throws IOException {
-    if (!basePath.toFile().exists()) {
-      if (!basePath.toFile().mkdirs()) {
-        LOG.error("Unable to create file path. Path: {}", basePath);
-        throw new IOException("Creation of the directories failed."
-            + basePath);
-      }
-    }
   }
 }
