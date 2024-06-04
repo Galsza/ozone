@@ -79,19 +79,11 @@ public class CertificateStorage {
   public synchronized CertPath writeCertificate(Path basePath, String pemEncodedCertificate, CAType caType)
       throws IOException {
     CertPath certPath = certificateCodec.getCertPathFromPemEncodedString(pemEncodedCertificate);
-
     X509Certificate cert = (X509Certificate) certPath.getCertificates().get(0);
     String certName = String.format(CERT_FILE_NAME_FORMAT,
         caType.getFileNamePrefix() + cert.getSerialNumber().toString());
-    checkBasePathDirectory(basePath);
     Path finalPath = Paths.get(basePath.toAbsolutePath().toString(), certName);
-    File certificateFile = finalPath.toFile();
-    try (FileOutputStream file = new FileOutputStream(certificateFile)) {
-      file.write(pemEncodedCertificate.getBytes(DEFAULT_CHARSET));
-    }
-    LOG.info("Save certificate to {}", certificateFile.getAbsolutePath());
-    LOG.info("Certificate {}", pemEncodedCertificate);
-    Files.setPosixFilePermissions(certificateFile.toPath(), PERMISSION_SET);
+    writeCertificate(finalPath.toAbsolutePath(), pemEncodedCertificate);
     return certPath;
   }
 

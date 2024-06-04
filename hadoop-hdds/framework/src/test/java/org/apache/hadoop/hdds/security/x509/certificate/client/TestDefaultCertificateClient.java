@@ -549,7 +549,7 @@ public class TestDefaultCertificateClient {
     X509Certificate cert = generateX509Cert(null);
     String certPem = certificateCodec.getPEMEncodedString(cert);
     CertificateStorage certificateStorage = new CertificateStorage(conf);
-    certificateStorage.writeCertificate(CertificateCodec.getCertFilePath(conf, compName), certPem);
+    certificateStorage.writeCertificate(conf.getCertFilePath(compName), certPem);
 
     Logger logger = mock(Logger.class);
     String certId = cert.getSerialNumber().toString();

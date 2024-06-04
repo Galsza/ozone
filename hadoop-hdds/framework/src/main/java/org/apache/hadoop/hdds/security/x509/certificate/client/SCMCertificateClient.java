@@ -409,8 +409,6 @@ public class SCMCertificateClient extends DefaultCertificateClient {
       String certificateHolder) throws IOException {
     SecurityConfig config = getSecurityConfig();
     CertificateStorage certificateStorage = new CertificateStorage(config);
-    certificateStorage.writeCertificate(
-        Paths.get(config.getCertificateLocation(getComponentName()).toString(), config.getCertificateFileName()),
-        certificateHolder);
+    certificateStorage.writeCertificate(config.getCertFilePath(getComponentName()), certificateHolder);
   }
 }

@@ -153,9 +153,7 @@ class TestSecureOzoneManager {
         securityConfig.getSignatureAlgo());
     CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
     CertificateCodec codec = securityConfig.getCertificateCodec();
-    certificateStorage.writeCertificate(
-        Paths.get(securityConfig.getCertificateLocation(COMPONENT).toAbsolutePath().toString(),
-            securityConfig.getCertificateFileName()),
+    certificateStorage.writeCertificate(securityConfig.getCertFilePath(COMPONENT),
         codec.getPEMEncodedString(x509Certificate));
 
     omStorage.setOmCertSerialId(x509Certificate.getSerialNumber().toString());

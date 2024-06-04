@@ -281,9 +281,4 @@ public class CertificateCodec {
       }
     }
   }
-
-  public static Path getCertFilePath(SecurityConfig config, String componentName) {
-    String certDir = config.getCertificateLocation(componentName).toAbsolutePath().toString();
-    return Paths.get(certDir, config.getCertificateFileName());
-  }
 }

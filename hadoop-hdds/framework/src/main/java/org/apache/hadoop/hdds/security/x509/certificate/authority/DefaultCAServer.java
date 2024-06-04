@@ -510,9 +510,7 @@ public class DefaultCAServer implements CertificateServer {
     CertificateCodec certificateCodec = securityConfig.getCertificateCodec();
     String pemString = certificateCodec.getPEMEncodedString(selfSignedCertificate);
     CertificateStorage certificateStorage = new CertificateStorage(config);
-    certificateStorage.writeCertificate(
-        Paths.get(config.getCertificateLocation(componentName).toAbsolutePath().toString(),
-            config.getCertificateFileName()), pemString);
+    certificateStorage.writeCertificate(securityConfig.getCertFilePath(componentName), pemString);
   }
 
   private void initWithExternalRootCa(SecurityConfig conf) {
@@ -544,10 +542,8 @@ public class DefaultCAServer implements CertificateServer {
       publicKey = readPublicKeyWithExternalData(
           externalPublicKeyLocation, keyCodec, certificate);
       keyCodec.writeKey(new KeyPair(publicKey, privateKey));
-      Path path = Paths.get(conf.getCertificateLocation(componentName).toAbsolutePath().toString(),
-          config.getCertificateFileName());
-      certificateStorage.writeCertificate(
-          path, certificateCodec.getPEMEncodedString(certificate));
+      certificateStorage.writeCertificate(conf.getCertFilePath(componentName),
+          certificateCodec.getPEMEncodedString(certificate));
     } catch (IOException | CertificateException | NoSuchAlgorithmException |
              InvalidKeySpecException e) {
       LOG.error("External root CA certificate initialization failed", e);

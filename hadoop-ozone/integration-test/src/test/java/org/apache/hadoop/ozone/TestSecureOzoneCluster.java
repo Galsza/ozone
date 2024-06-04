@@ -1054,7 +1054,7 @@ final class TestSecureOzoneCluster {
         null, Duration.ofSeconds(certificateLifetime));
     String certId = certHolder.getSerialNumber().toString();
     CertificateCodec certificateCodec = securityConfig.getCertificateCodec();
-    CertificateCodec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, "om"),
+    CertificateCodec.writeCertificate(securityConfig.getCertFilePath("om"),
         certificateCodec.getPEMEncodedString(certHolder));
     omStorage.setOmCertSerialId(certId);
     omStorage.forceInitialize();
@@ -1152,7 +1152,7 @@ final class TestSecureOzoneCluster {
           new KeyPair(client.getPublicKey(), client.getPrivateKey()),
           null, Duration.ofSeconds(certificateLifetime));
       String certId = cert.getSerialNumber().toString();
-      certificateCodec.writeCertificate(certificateCodec.getCertFilePath(securityConfig, "om"),
+      certificateCodec.writeCertificate(securityConfig.getCertFilePath("om"),
           certificateCodec.getPEMEncodedString(cert));
       omStorage.setOmCertSerialId(certId);
       omStorage.forceInitialize();

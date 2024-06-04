@@ -138,7 +138,7 @@ public class TestOmCertificateClientInit {
     if (certPresent) {
       CertificateCodec certificateCodec = securityConfig.getCertificateCodec();
       CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
-      certificateStorage.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, OM_COMPONENT),
+      certificateStorage.writeCertificate(securityConfig.getCertFilePath(OM_COMPONENT),
           certificateCodec.getPEMEncodedString(x509Certificate));
     } else {
       FileUtils.deleteQuietly(Paths.get(

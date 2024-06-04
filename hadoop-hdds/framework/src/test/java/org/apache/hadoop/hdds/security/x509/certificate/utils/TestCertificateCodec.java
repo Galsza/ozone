@@ -103,7 +103,7 @@ public class TestCertificateCodec {
     X509Certificate initialCert = generateTestCert();
     X509Certificate prependedCert = generateTestCert();
     CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
-    certificateStorage.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
+    certificateStorage.writeCertificate(securityConfig.getCertFilePath(COMPONENT),
         codec.getPEMEncodedString(initialCert));
     CertPath initialPath = certificateStorage.getCertPath(COMPONENT, securityConfig.getCertificateFileName());
     CertPath pathWithPrependedCert =
@@ -137,7 +137,7 @@ public class TestCertificateCodec {
   public void testWriteCertificateDefault() throws Exception {
     X509Certificate cert = generateTestCert();
     CertificateCodec codec = securityConfig.getCertificateCodec();
-    codec.writeCertificate(CertificateCodec.getCertFilePath(securityConfig, COMPONENT),
+    codec.writeCertificate(securityConfig.getCertificateLocation(COMPONENT),
         codec.getPEMEncodedString(cert));
     X509Certificate loadedCertificate = codec.getTargetCert(
         securityConfig.getCertificateLocation(COMPONENT), securityConfig.getCertificateFileName());

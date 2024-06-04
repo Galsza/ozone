@@ -391,6 +391,11 @@ public class SecurityConfig {
     return certificateFileName;
   }
 
+  public Path getCertFilePath(String componentName) {
+    String certDir = getCertificateLocation(componentName).toAbsolutePath().toString();
+    return Paths.get(certDir, getCertificateFileName());
+  }
+
   /**
    * Returns the public key file name, This is used for storing the public keys
    * on disk.
