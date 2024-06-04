@@ -148,8 +148,9 @@ public class TestRootCertificate {
 
     CertificateCodec codec = securityConfig.getCertificateCodec();
     String pemString = codec.getPEMEncodedString(certificate);
+    CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
 
-    CertificateCodec.writeCertificate(Paths.get(basePath.toString(), "pemcertificate.crt"),
+    certificateStorage.writeCertificate(Paths.get(basePath.toString(), "pemcertificate.crt"),
         pemString);
 
     X509Certificate loadedCert = codec.getTargetCert(basePath, "pemcertificate.crt");

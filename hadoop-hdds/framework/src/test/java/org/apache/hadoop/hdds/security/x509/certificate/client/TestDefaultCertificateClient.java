@@ -93,6 +93,7 @@ public class TestDefaultCertificateClient {
   private static final String DN_COMPONENT = DNCertificateClient.COMPONENT_NAME;
   private KeyCodec dnKeyCodec;
   private CertificateCodec certificateCodec;
+  private CertificateStorage certificateStorage;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -112,6 +113,7 @@ public class TestDefaultCertificateClient {
     scmSecurityClient = mock(SCMSecurityProtocolClientSideTranslatorPB.class);
     getCertClient();
     certificateCodec = dnSecurityConfig.getCertificateCodec();
+    certificateStorage = new CertificateStorage(dnSecurityConfig);
   }
 
   private void getCertClient() throws IOException {
@@ -293,20 +295,21 @@ public class TestDefaultCertificateClient {
             .toString()));
     assertThat(certException.getMessage())
         .contains("Error while getting certificate");
-    certificateCodec.writeCertificate(Paths.get(certPath.toString(), "1.crt"),
+    certificateStorage.writeCertificate(Paths.get(certPath.toString(), "1.crt"),
         certificateCodec.getPEMEncodedString(cert1));
-    certificateCodec.writeCertificate(Paths.get(certPath.toString(), "2.crt"),
+    certificateStorage.writeCertificate(Paths.get(certPath.toString(), "2.crt"),
         certificateCodec.getPEMEncodedString(cert2));
-    certificateCodec.writeCertificate(Paths.get(certPath.toString(), "3.crt"),
+    certificateStorage.writeCertificate(Paths.get(certPath.toString(), "3.crt"),
         certificateCodec.getPEMEncodedString(cert3));
-    certificateCodec.writeCertificate(Paths.get(certPath.toString(), CAType.ROOT.getFileNamePrefix() + "1.crt"),
+    certificateStorage.writeCertificate(Paths.get(certPath.toString(), CAType.ROOT.getFileNamePrefix() + "1.crt"),
         certificateCodec.getPEMEncodedString(rootCa1));
-    certificateCodec.writeCertificate(Paths.get(certPath.toString(), CAType.ROOT.getFileNamePrefix() + "2.crt"),
+    certificateStorage.writeCertificate(Paths.get(certPath.toString(), CAType.ROOT.getFileNamePrefix() + "2.crt"),
         certificateCodec.getPEMEncodedString(rootCa2));
-    certificateCodec.writeCertificate(Paths.get(certPath.toString(), CAType.SUBORDINATE.getFileNamePrefix() + "1.crt"),
+    certificateStorage.writeCertificate(
+        Paths.get(certPath.toString(), CAType.SUBORDINATE.getFileNamePrefix() + "1.crt"),
         certificateCodec.getPEMEncodedString(subCa1));
-    certificateCodec.writeCertificate(Paths.get(certPath.toString(), CAType.SUBORDINATE.getFileNamePrefix() + "2.crt"),
-        certificateCodec.getPEMEncodedString(subCa2));
+    certificateStorage.writeCertificate(Paths.get(certPath.toString(),
+        CAType.SUBORDINATE.getFileNamePrefix() + "2.crt"), certificateCodec.getPEMEncodedString(subCa2));
 
     // Re instantiate DN client which will load certificates from filesystem.
     if (dnCertClient != null) {
@@ -399,7 +402,7 @@ public class TestDefaultCertificateClient {
         dnSecurityConfig.getKeyLocation(DN_COMPONENT).toString(),
         dnSecurityConfig.getCertificateFileName()).toFile());
 
-    certificateCodec.writeCertificate(Paths.get(dnSecurityConfig.getCertificateLocation(DN_COMPONENT).toString(),
+    certificateStorage.writeCertificate(Paths.get(dnSecurityConfig.getCertificateLocation(DN_COMPONENT).toString(),
             dnSecurityConfig.getCertificateFileName()),
         certificateCodec.getPEMEncodedString(x509Certificate));
     // Check for DN.
@@ -460,9 +463,7 @@ public class TestDefaultCertificateClient {
   @Test
   public void testRenewAndStoreKeyAndCertificate() throws Exception {
     // save the certificate on dn
-    certificateCodec.writeCertificate(Paths.get(
-            dnSecurityConfig.getCertificateLocation(DN_COMPONENT).toAbsolutePath().toString(),
-            dnSecurityConfig.getCertificateFileName()),
+    certificateStorage.writeCertificate(dnSecurityConfig.getCertFilePath(DN_COMPONENT),
         certificateCodec.getPEMEncodedString(x509Certificate));
 
     X509Certificate newCert = generateX509Cert(null);
@@ -548,7 +549,6 @@ public class TestDefaultCertificateClient {
 
     X509Certificate cert = generateX509Cert(null);
     String certPem = certificateCodec.getPEMEncodedString(cert);
-    CertificateStorage certificateStorage = new CertificateStorage(conf);
     certificateStorage.writeCertificate(conf.getCertFilePath(compName), certPem);
 
     Logger logger = mock(Logger.class);

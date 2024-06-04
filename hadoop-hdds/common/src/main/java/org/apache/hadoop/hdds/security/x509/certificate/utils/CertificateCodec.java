@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,7 +37,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
@@ -194,28 +192,6 @@ public class CertificateCodec {
     } catch (NoSuchProviderException e) {
       throw new RuntimeException("BouncyCastle JCE provider not loaded.", e);
     }
-  }
-
-  /**
-   * Helper function that writes data to the file.
-   *
-   * @param basePath              - Base Path where the file needs to written
-   *                              to..
-   * @param pemEncodedCertificate - pemEncoded Certificate file.
-   * @throws IOException - on Error.
-   */
-  public static synchronized void writeCertificate(Path basePath,
-      String pemEncodedCertificate)
-      throws IOException {
-    checkBasePathDirectory(basePath.getParent());
-    File certificateFile = basePath.toFile();
-
-    try (FileOutputStream file = new FileOutputStream(certificateFile)) {
-      file.write(pemEncodedCertificate.getBytes(DEFAULT_CHARSET));
-    }
-    LOG.info("Save certificate to {}", certificateFile.getAbsolutePath());
-    LOG.info("Certificate {}", pemEncodedCertificate);
-    Files.setPosixFilePermissions(certificateFile.toPath(), PERMISSION_SET);
   }
 
   /**

@@ -121,10 +121,11 @@ public class TestCertificateCodec {
   public void testWriteCertificate(@TempDir Path basePath) throws Exception {
     X509Certificate cert = generateTestCert();
     CertificateCodec codec = securityConfig.getCertificateCodec();
+    CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
     String pemString = codec.getPEMEncodedString(cert);
     Path path = Paths.get(basePath.toString(), "pemcertificate.crt");
-    CertificateCodec.writeCertificate(path, pemString);
-    X509Certificate loadedCertificate = codec.getTargetCert(basePath, "pemcertificate.crt");
+    certificateStorage.writeCertificate(path, pemString);
+    X509Certificate loadedCertificate = certificateStorage.getFirstCertFromCertPath(basePath, "pemcertificate.crt");
 
     assertNotNull(loadedCertificate);
     assertEquals(cert.getSerialNumber(), loadedCertificate.getSerialNumber());
@@ -137,9 +138,10 @@ public class TestCertificateCodec {
   public void testWriteCertificateDefault() throws Exception {
     X509Certificate cert = generateTestCert();
     CertificateCodec codec = securityConfig.getCertificateCodec();
-    codec.writeCertificate(securityConfig.getCertificateLocation(COMPONENT),
+    CertificateStorage certificateStorage = new CertificateStorage(securityConfig);
+    certificateStorage.writeCertificate(securityConfig.getCertFilePath(COMPONENT),
         codec.getPEMEncodedString(cert));
-    X509Certificate loadedCertificate = codec.getTargetCert(
+    X509Certificate loadedCertificate = certificateStorage.getFirstCertFromCertPath(
         securityConfig.getCertificateLocation(COMPONENT), securityConfig.getCertificateFileName());
 
     assertNotNull(loadedCertificate);

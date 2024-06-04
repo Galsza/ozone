@@ -32,6 +32,7 @@ import org.apache.hadoop.hdds.security.SecurityConfig;
 import org.apache.hadoop.hdds.security.x509.certificate.CertInfo;
 import org.apache.hadoop.hdds.security.x509.certificate.client.SCMCertificateClient;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
+import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateStorage;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.SelfSignedCertificate;
 import org.apache.hadoop.security.ssl.KeyStoreTestUtil;
 import org.apache.ozone.test.GenericTestUtils;
@@ -98,6 +99,7 @@ public class TestRootCARotationManager {
   private String scmID = UUID.randomUUID().toString();
   private BigInteger certID = new BigInteger("1");
   private CertificateCodec certificateCodec;
+  private CertificateStorage certificateStorage;
 
   @BeforeEach
   public void init() throws IOException, TimeoutException,
@@ -113,6 +115,7 @@ public class TestRootCARotationManager {
     scmCertClient = new SCMCertificateClient(securityConfig, null, scmID, cID,
         certID.toString(), "localhost");
     certificateCodec = securityConfig.getCertificateCodec();
+    certificateStorage = new CertificateStorage(securityConfig);
     scmServiceManager = new SCMServiceManager();
     scmContext = mock(SCMContext.class);
     scmhaManager = mock(SCMHAManager.class);
@@ -259,7 +262,8 @@ public class TestRootCARotationManager {
     X509Certificate cert = generateX509Cert(ozoneConfig,
         LocalDateTime.now(), Duration.ofSeconds(90));
     scmCertClient.setCACertificate(cert);
-    certificateCodec.writeCertificate(securityConfig.getCertFilePath("scm/sub-ca"),
+
+    certificateStorage.writeCertificate(securityConfig.getCertFilePath("scm/sub-ca"),
         certificateCodec.getPEMEncodedString(cert));
     rootCARotationManager = new RootCARotationManager(scm);
     rootCARotationManager.setRootCARotationHandler(handler);

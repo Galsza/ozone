@@ -40,6 +40,7 @@ import org.apache.hadoop.hdds.protocolPB.SCMSecurityProtocolClientSideTranslator
 import org.apache.hadoop.hdds.security.SecurityConfig;
 import org.apache.hadoop.hdds.security.x509.certificate.client.DNCertificateClient;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
+import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateStorage;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.SelfSignedCertificate;
 import org.apache.hadoop.hdds.security.x509.keys.KeyCodec;
 import org.apache.hadoop.security.ssl.KeyStoreTestUtil;
@@ -86,6 +87,7 @@ public class TestHddsSecureDatanodeInit {
   private static SecurityConfig securityConfig;
   private static KeyCodec keyCodec;
   private static CertificateCodec certCodec;
+  private static CertificateStorage certificateStorage;
   private static X509Certificate cert;
   private static final String DN_COMPONENT = DNCertificateClient.COMPONENT_NAME;
   private static final int CERT_LIFETIME = 15; // seconds
@@ -130,6 +132,7 @@ public class TestHddsSecureDatanodeInit {
     dnLogs = GenericTestUtils.LogCapturer.captureLogs(
         ((DNCertificateClient) service.getCertificateClient()).getLogger());
     certCodec = securityConfig.getCertificateCodec();
+    certificateStorage = new CertificateStorage(securityConfig);
     keyCodec = new KeyCodec(securityConfig, DN_COMPONENT);
     dnLogs.clearOutput();
     privateKey = service.getCertificateClient().getPrivateKey();
@@ -463,9 +466,7 @@ public class TestHddsSecureDatanodeInit {
   }
 
   private void writeCertificate() throws IOException {
-    String path = securityConfig.getCertificateLocation(DN_COMPONENT).toAbsolutePath().toString();
-    String certFileName = securityConfig.getCertificateFileName();
-    certCodec.writeCertificate(Paths.get(path, certFileName),
+    certificateStorage.writeCertificate(securityConfig.getCertFilePath(DN_COMPONENT),
         certCodec.getPEMEncodedString(cert));
   }
 }
