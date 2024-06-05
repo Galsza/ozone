@@ -182,8 +182,7 @@ public class TestDefaultCAServer {
     List<? extends Certificate> certBundle = holder.get().getCertificates();
     X509Certificate caInReturnedBundle = (X509Certificate) certBundle.get(1);
     assertEquals(caInReturnedBundle, testCA.getCACertificate());
-    X509Certificate signedCert =
-        CertificateCodec.firstCertificateFrom(holder.get());
+    X509Certificate signedCert = (X509Certificate) holder.get().getCertificates().get(0);
     //Test that the ca has signed of the returned certificate
     assertEquals(caInReturnedBundle.getSubjectX500Principal(),
         signedCert.getIssuerX500Principal());
@@ -226,7 +225,7 @@ public class TestDefaultCAServer {
         String.valueOf(System.nanoTime()));
     // Right now our calls are synchronous. Eventually this will have to wait.
     assertTrue(holder.isDone());
-    assertNotNull(CertificateCodec.firstCertificateFrom(holder.get()));
+    assertNotNull(holder.get().getCertificates().get(0));
   }
 
   @Test
@@ -417,8 +416,7 @@ public class TestDefaultCAServer {
           CertificateApprover.ApprovalType.TESTING_AUTOMATIC, SCM,
           String.valueOf(System.nanoTime()));
       assertTrue(holder.isDone());
-      X509Certificate certificate =
-          CertificateCodec.firstCertificateFrom(holder.get());
+      X509Certificate certificate = (X509Certificate) holder.get().getCertificates().get(0);
 
       assertNotNull(certificate);
       LocalDate invalidAfterDate = certificate.getNotAfter().toInstant()

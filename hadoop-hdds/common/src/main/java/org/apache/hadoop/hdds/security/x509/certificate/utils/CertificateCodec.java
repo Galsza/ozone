@@ -65,9 +65,6 @@ public class CertificateCodec {
   private static final Logger LOG =
       LoggerFactory.getLogger(CertificateCodec.class);
   private final SecurityConfig securityConfig;
-  private static final Set<PosixFilePermission> PERMISSION_SET =
-      Stream.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE)
-          .collect(Collectors.toSet());
 
   /**
    * Creates a CertificateCodec with component name.
@@ -178,10 +175,6 @@ public class CertificateCodec {
     return new IOException("Failed to engineGenerateCertificate", e);
   }
 
-  public static X509Certificate firstCertificateFrom(CertPath certificatePath) {
-    return (X509Certificate) certificatePath.getCertificates().get(0);
-  }
-
   public static CertificateFactory getCertFactory() throws CertificateException {
     try {
       return CertificateFactory.getInstance("X.509", "BC");
@@ -217,7 +210,7 @@ public class CertificateCodec {
     return getCertFactory().generateCertPath(updatedList);
   }
 
-  public static CertPath generateCertPathFromInputStream(InputStream inputStream) throws CertificateException {
+  public CertPath generateCertPathFromInputStream(InputStream inputStream) throws CertificateException {
     return getCertFactory().generateCertPath(inputStream, "PEM");
   }
 }
