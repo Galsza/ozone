@@ -272,7 +272,7 @@ public class SecurityConfig {
     // First Startup -- if the provider is null, check for the provider.
     if (SecurityConfig.provider == null) {
       String providerString = configuration.get(HDDS_SECURITY_PROVIDER, HDDS_DEFAULT_SECURITY_PROVIDER);
-      provider = Security.getProvider(providerString);
+      Security.setProperty("keystore.type", "pkcs12");
       if (SecurityConfig.provider == null) {
         // Provider not found, let us try to Dynamically initialize the
         // provider.
