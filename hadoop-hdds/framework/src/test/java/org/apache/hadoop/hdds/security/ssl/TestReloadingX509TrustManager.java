@@ -46,9 +46,7 @@ public class TestReloadingX509TrustManager {
 
   @Test
   public void testReload() throws Exception {
-    ReloadingX509TrustManager tm =
-        (ReloadingX509TrustManager) caClient.getServerKeyStoresFactory()
-            .getTrustManagers()[0];
+    ReloadingX509TrustManager tm = (ReloadingX509TrustManager) caClient.getTrustManager();
     X509Certificate cert1 = caClient.getRootCACertificate();
     assertThat(tm.getAcceptedIssuers()).containsOnly(cert1);
 

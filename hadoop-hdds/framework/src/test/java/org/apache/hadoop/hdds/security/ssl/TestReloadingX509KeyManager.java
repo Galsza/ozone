@@ -48,7 +48,7 @@ public class TestReloadingX509KeyManager {
 
   @Test
   public void testReload() throws Exception {
-    KeyManager km = caClient.getServerKeyStoresFactory().getKeyManagers()[0];
+    KeyManager km = caClient.getKeyManager();
     PrivateKey privateKey1 = caClient.getPrivateKey();
     assertEquals(privateKey1, ((ReloadingX509KeyManager)km).getPrivateKey(
         caClient.getComponentName() + "_key"));
