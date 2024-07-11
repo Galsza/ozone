@@ -20,15 +20,24 @@
 package org.apache.hadoop.hdds.security.x509.certificate.client;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermission;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyStore;
@@ -40,10 +49,13 @@ import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.CertPath;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -69,6 +81,7 @@ import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.hdds.protocol.proto.SCMSecurityProtocolProtos.SCMGetCertResponseProto;
@@ -87,6 +100,9 @@ import org.apache.hadoop.ozone.OzoneSecurityUtil;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.RandomStringUtils;
 
+import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static org.apache.hadoop.hdds.HddsConfigKeys.HDDS_BACKUP_KEY_CERT_DIR_NAME_SUFFIX;
 import static org.apache.hadoop.hdds.HddsConfigKeys.HDDS_NEW_KEY_CERT_DIR_NAME_SUFFIX;
 import static org.apache.hadoop.hdds.security.x509.certificate.client.CertificateClient.InitResponse.FAILURE;
@@ -100,6 +116,9 @@ import static org.apache.hadoop.hdds.security.x509.exception.CertificateExceptio
 import static org.apache.hadoop.hdds.security.x509.exception.CertificateException.ErrorCode.ROLLBACK_ERROR;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
+import org.bouncycastle.util.io.pem.PemWriter;
 import org.slf4j.Logger;
 
 import javax.net.ssl.KeyManager;
@@ -112,8 +131,14 @@ import javax.net.ssl.TrustManager;
  */
 public abstract class DefaultCertificateClient implements CertificateClient {
 
+  public static final String PRIVATE_KEY = "PRIVATE KEY";
+  public static final String PUBLIC_KEY = "PUBLIC KEY";
+  private static final Set<PosixFilePermission> FILE_PERMISSION_SET = ImmutableSet.of(OWNER_READ, OWNER_WRITE);
+  private static final Set<PosixFilePermission> DIR_PERMISSION_SET =
+      ImmutableSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE);
   private static final String CERT_FILE_EXTENSION = ".crt";
   public static final String CERT_FILE_NAME_FORMAT = "%s" + CERT_FILE_EXTENSION;
+  public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
   private final Logger logger;
   private final SecurityConfig securityConfig;
@@ -729,6 +754,211 @@ public abstract class DefaultCertificateClient implements CertificateClient {
     return handleCase(init);
   }
 
+  private synchronized InitResponse initRefactor() throws IOException, java.security.cert.CertificateException {
+    PrivateKey pvtKey = getPrivateKeyRefactor();
+    PublicKey pubKey = getPublicKeyRefactor();
+    CertPath certificatePathRefactor = getCertificatePathRefactor();
+    int initCase = 0;
+    if (pvtKey != null) {
+      initCase += 4;
+    }
+    if (pubKey != null) {
+      initCase += 2;
+    }
+    if (certificatePathRefactor != null) {
+      initCase += 1;
+    }
+    getLogger().info("Certificate client init case: {}", initCase);
+    Preconditions.checkArgument(initCase < InitCase.values().length, "Not a " +
+        "valid case.");
+    InitCase init = InitCase.values()[initCase];
+    return handleCase(init);
+  }
+
+  private Path getMetadataDirRefactor() {
+    return securityConfig.getLocation(getComponentName());
+  }
+
+  private String getCertificateLocationRefactor() {
+    return "certsDir";
+  }
+
+  private String getKeyLocationRefactor() {
+    return "keysDir";
+  }
+
+  private PrivateKey getPrivateKeyRefactor() {
+    if (privateKey != null) {
+      return privateKey;
+    }
+    Path keyPath = getKeyPath();
+    String privateKeyFileName = securityConfig.getPrivateKeyFileName();
+    if (!OzoneSecurityUtil.checkIfFileExist(keyPath, privateKeyFileName)) {
+      return null;
+    }
+    try {
+      final byte[] keyContent = readKeyFile(keyPath, privateKeyFileName);
+      final KeyFactory keyFactory = getKeyFactory();
+      privateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(keyContent));
+    } catch (InvalidKeySpecException | NoSuchAlgorithmException | IOException e) {
+      getLogger().error("Error while getting private key.", e);
+    }
+    return privateKey;
+  }
+
+  private byte[] readKeyFile(Path keyPath, String privateKeyFileName) throws IOException {
+    File fileName = Paths.get(keyPath.toString(), privateKeyFileName).toFile();
+    String keyData = FileUtils.readFileToString(fileName, DEFAULT_CHARSET);
+    return toEncodedFormat(keyData);
+  }
+
+  private PublicKey getPublicKeyRefactor() {
+    if (publicKey != null) {
+      return publicKey;
+    }
+    Path keyPath = getKeyPath();
+    String publicKeyFileName = securityConfig.getPublicKeyFileName();
+    if (!OzoneSecurityUtil.checkIfFileExist(keyPath, publicKeyFileName)) {
+      return null;
+    }
+    try {
+      final byte[] keyContent = readKeyFile(keyPath, publicKeyFileName);
+      final KeyFactory keyFactory = getKeyFactory();
+      publicKey = keyFactory.generatePublic(new X509EncodedKeySpec(keyContent));
+    } catch (InvalidKeySpecException | NoSuchAlgorithmException | IOException e) {
+      getLogger().error("Error while getting private key.", e);
+    }
+    return publicKey;
+  }
+
+  private Path getKeyPath() {
+    return Paths.get(getMetadataDirRefactor().toString(), getKeyLocationRefactor());
+  }
+
+  private byte[] toEncodedFormat(String keyData) throws IOException {
+    final byte[] pemContent;
+    try (PemReader pemReader = new PemReader(new StringReader(keyData))) {
+      PemObject keyObject = pemReader.readPemObject();
+      pemContent = keyObject.getContent();
+    }
+    return pemContent;
+  }
+
+  private CertPath getCertificatePathRefactor() throws java.security.cert.CertificateException, IOException {
+    Path keyPath = Paths.get(getMetadataDirRefactor().toAbsolutePath().toString(),
+        getCertificateLocationRefactor());
+    return getCertPath(keyPath, securityConfig.getCertificateFileName());
+  }
+
+  public static CertificateFactory getCertFactory() throws java.security.cert.CertificateException {
+    try {
+      return CertificateFactory.getInstance("X.509", "BC");
+    } catch (NoSuchProviderException e) {
+      throw new RuntimeException("BouncyCastle JCE provider not loaded.", e);
+    }
+  }
+
+  private CertPath getCertPath(Path path, String fileName) throws IOException,
+      java.security.cert.CertificateException {
+    checkBasePathDirectory(path.toAbsolutePath());
+    File certFile =
+        Paths.get(path.toAbsolutePath().toString(), fileName).toFile();
+    if (!certFile.exists()) {
+      throw new IOException("Unable to find the requested certificate file. " +
+          "Path: " + certFile);
+    }
+    try (FileInputStream is = new FileInputStream(certFile)) {
+      return generateCertPathFromInputStream(is);
+    }
+  }
+
+  private CertPath generateCertPathFromInputStream(InputStream inputStream) throws
+      java.security.cert.CertificateException {
+    return getCertFactory().generateCertPath(inputStream, "PEM");
+  }
+
+  private void checkBasePathDirectory(Path basePath) throws IOException {
+    if (!basePath.toFile().exists()) {
+      if (!basePath.toFile().mkdirs()) {
+        logger.error("Unable to create file path. Path: {}", basePath);
+        throw new IOException("Creation of the directories failed."
+            + basePath);
+      }
+    }
+  }
+
+  private KeyPair bootStrapClientKeysRefactor() throws CertificateException, IOException {
+    KeyPair keyPair = createKeyPairRefactor();
+    storeKeyPair(keyPair);
+    privateKey = keyPair.getPrivate();
+    publicKey = keyPair.getPublic();
+    return keyPair;
+  }
+
+  private KeyPair createKeyPairRefactor() throws CertificateException {
+    HDDSKeyGenerator keyGenerator = new HDDSKeyGenerator(securityConfig);
+    KeyPair keyPair;
+    try {
+      keyPair = keyGenerator.generateKey();
+    } catch (NoSuchProviderException | NoSuchAlgorithmException e) {
+      getLogger().error("Error while bootstrapping certificate client.", e);
+      throw new CertificateException("Error while bootstrapping certificate.",
+          BOOTSTRAP_ERROR);
+    }
+    return keyPair;
+  }
+
+  private void storeKeyPair(KeyPair keyPair) throws IOException {
+    Path keyPath = getKeyPath();
+    if (Files.notExists(keyPath)) {
+      try {
+        Files.createDirectories(keyPath);
+      } catch (IOException e) {
+        throw new CertificateException("Error while creating directories " +
+            "for certificate storage.", BOOTSTRAP_ERROR);
+      }
+    }
+    checkKeyPath(keyPath);
+    storeKey(keyPair.getPublic(), PUBLIC_KEY, securityConfig.getPublicKeyFileName());
+    storeKey(keyPair.getPrivate(), PRIVATE_KEY, securityConfig.getPrivateKeyFileName());
+  }
+
+  private void storeKey(Key key, String keyType, String keyFileName) throws IOException {
+    String encodedKey = encodeKey(keyType, key);
+    File keyFile = Paths.get(getKeyPath().toString(), keyFileName).toFile();
+    writeToFile(keyFile, encodedKey);
+    Files.setPosixFilePermissions(keyFile.toPath(), FILE_PERMISSION_SET);
+  }
+
+  private void checkKeyPath(Path basePath) throws IOException {
+    Preconditions.checkNotNull(basePath, "Base path cannot be null");
+    if (!isPosix()) {
+      logger.error("Keys cannot be stored securely without POSIX file system "
+          + "support for now.");
+      throw new IOException("Unsupported File System for pem file.");
+    }
+
+    if (Files.exists(basePath)) {
+      // Not the end of the world if we reset the permissions on an existing
+      // directory.
+      Files.setPosixFilePermissions(basePath, DIR_PERMISSION_SET);
+    } else {
+      boolean success = basePath.toFile().mkdirs();
+      if (!success) {
+        logger.error("Unable to create the directory for the "
+            + "location. Location: {}", basePath);
+        throw new IOException("Unable to create the directory for the "
+            + "location. Location:" + basePath);
+      }
+      Files.setPosixFilePermissions(basePath, DIR_PERMISSION_SET);
+    }
+  }
+
+  private static boolean isPosix() {
+    return FileSystems.getDefault().supportedFileAttributeViews()
+        .contains("posix");
+  }
+
   private X509Certificate firstCertificateFrom(CertPath certificatePath) {
     return CertificateCodec.firstCertificateFrom(certificatePath);
   }
@@ -887,8 +1117,7 @@ public abstract class DefaultCertificateClient implements CertificateClient {
         RSAPrivateCrtKey rsaCrtKey = (RSAPrivateCrtKey) priKey;
         RSAPublicKeySpec rsaPublicKeySpec = new RSAPublicKeySpec(
             rsaCrtKey.getModulus(), rsaCrtKey.getPublicExponent());
-        PublicKey pubKey = KeyFactory.getInstance(securityConfig.getKeyAlgo())
-            .generatePublic(rsaPublicKeySpec);
+        PublicKey pubKey = getKeyFactory().generatePublic(rsaPublicKeySpec);
         if (validateKeyPair(pubKey)) {
           keyCodec.writePublicKey(pubKey);
           publicKey = pubKey;
@@ -939,6 +1168,24 @@ public abstract class DefaultCertificateClient implements CertificateClient {
     publicKey = keyPair.getPublic();
   }
 
+  private String encodeKey(String keyType, Key key) throws IOException {
+    try (StringWriter sw = new StringWriter(); PemWriter publicKeyWriter = new PemWriter(sw)) {
+      publicKeyWriter.writeObject(new PemObject(keyType, key.getEncoded()));
+      publicKeyWriter.flush();
+      return sw.toString();
+    }
+  }
+
+  private KeyFactory getKeyFactory() throws NoSuchAlgorithmException {
+    return KeyFactory.getInstance(securityConfig.getKeyAlgo());
+  }
+
+  private void writeToFile(File file, String material) throws IOException {
+    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+      fileOutputStream.write(material.getBytes(DEFAULT_CHARSET));
+    }
+  }
+
   protected KeyPair createKeyPair(KeyCodec codec) throws CertificateException {
     HDDSKeyGenerator keyGenerator = new HDDSKeyGenerator(securityConfig);
     KeyPair keyPair = null;
@@ -947,7 +1194,7 @@ public abstract class DefaultCertificateClient implements CertificateClient {
       codec.writePublicKey(keyPair.getPublic());
       codec.writePrivateKey(keyPair.getPrivate());
     } catch (NoSuchProviderException | NoSuchAlgorithmException
-        | IOException e) {
+             | IOException e) {
       getLogger().error("Error while bootstrapping certificate client.", e);
       throw new CertificateException("Error while bootstrapping certificate.",
           BOOTSTRAP_ERROR);
