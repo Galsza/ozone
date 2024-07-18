@@ -23,6 +23,8 @@ import org.apache.hadoop.hdds.conf.OzoneConfiguration;
 import org.apache.hadoop.hdds.scm.ScmConfigKeys;
 import org.apache.hadoop.hdds.scm.metadata.SCMMetadataStore;
 import org.apache.hadoop.hdds.scm.server.StorageContainerManager;
+import org.apache.hadoop.hdds.security.ssl.ReloadingX509KeyManager;
+import org.apache.hadoop.hdds.security.ssl.ReloadingX509TrustManager;
 import org.apache.hadoop.hdds.security.x509.CertificateTestUtils;
 import org.apache.hadoop.hdds.security.x509.certificate.client.SCMCertificateClient;
 import org.apache.hadoop.hdds.utils.TransactionInfo;
@@ -214,26 +216,26 @@ class TestInterSCMGrpcProtocolService {
     return scmCertClient;
   }
 
-  private X509TrustManager aTrustManagerThatTrusts(X509Certificate certificate)
+  private ReloadingX509TrustManager aTrustManagerThatTrusts(X509Certificate certificate)
       throws CertificateException {
-    X509TrustManager trustManager = mock(X509TrustManager.class);
+    ReloadingX509TrustManager trustManager = mock(ReloadingX509TrustManager.class);
     doNothing().when(trustManager).checkServerTrusted(any(), any());
     doNothing().when(trustManager).checkClientTrusted(any(), any());
-    doReturn(new X509Certificate[] {certificate})
+    doReturn(new X509Certificate[]{certificate})
         .when(trustManager).getAcceptedIssuers();
     return trustManager;
   }
 
-  private X509KeyManager aKeyManagerWith(KeyPair keyPair,
+  private ReloadingX509KeyManager aKeyManagerWith(KeyPair keyPair,
       X509Certificate certificate) {
-    X509KeyManager keyManager = mock(X509KeyManager.class);
+    ReloadingX509KeyManager keyManager = mock(ReloadingX509KeyManager.class);
     doReturn("server")
         .when(keyManager).chooseServerAlias(any(), any(), any());
     doReturn("client")
         .when(keyManager).chooseClientAlias(any(), any(), any());
-    doReturn(new String[] {"server"})
+    doReturn(new String[]{"server"})
         .when(keyManager).getServerAliases(any(), any());
-    doReturn(new String[] {"client"})
+    doReturn(new String[]{"client"})
         .when(keyManager).getClientAliases(any(), any());
     doReturn(new X509Certificate[] {certificate})
         .when(keyManager).getCertificateChain(any());
@@ -249,6 +251,5 @@ class TestInterSCMGrpcProtocolService {
     conf.setBoolean(HddsConfigKeys.HDDS_GRPC_TLS_ENABLED, true);
     return conf;
   }
-
 
 }
