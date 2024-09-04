@@ -100,12 +100,8 @@ public class ListSubcommand extends ScmCertSubcommand {
 
     if (json) {
       err.println("Certificate list:(BatchSize=" + count + ", CertCount=" + certPemList.size() + ")");
-      List<Certificate> certList = new ArrayList<>();
-      for (X509Certificate certPemStr : certPemList) {
-        certList.add(new Certificate(certPemStr));
-      }
       System.out.println(
-          JsonUtils.toJsonStringWithDefaultPrettyPrinter(certList));
+          JsonUtils.toJsonStringWithDefaultPrettyPrinter(certPemList));
       return;
     }
 
