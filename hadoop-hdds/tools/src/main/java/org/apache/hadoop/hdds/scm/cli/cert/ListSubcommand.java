@@ -19,7 +19,6 @@ package org.apache.hadoop.hdds.scm.cli.cert;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -34,6 +33,7 @@ import org.apache.hadoop.hdds.cli.HddsVersionProvider;
 import org.apache.hadoop.hdds.protocol.SCMSecurityProtocol;
 
 import org.apache.hadoop.hdds.protocol.proto.HddsProtos;
+import org.apache.hadoop.hdds.security.exception.SCMSecurityException;
 import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
 import org.apache.hadoop.hdds.server.JsonUtils;
 import picocli.CommandLine.Command;
@@ -91,7 +91,7 @@ public class ListSubcommand extends ScmCertSubcommand {
   @Override
   protected void execute(SCMSecurityProtocol client) throws IOException {
     HddsProtos.NodeType nodeType = parseCertRole(role);
-    List<String> certPemList = client.listCertificate(nodeType, startSerialId, count);
+    List<X509Certificate> certPemList = client.listCertificate(nodeType, startSerialId, count);
     if (count == certPemList.size()) {
       err.println("The certificate list could be longer than the batch size: "
           + count + ". Please use the \"-c\" option to see more" +
@@ -101,14 +101,8 @@ public class ListSubcommand extends ScmCertSubcommand {
     if (json) {
       err.println("Certificate list:(BatchSize=" + count + ", CertCount=" + certPemList.size() + ")");
       List<Certificate> certList = new ArrayList<>();
-      for (String certPemStr : certPemList) {
-        try {
-          X509Certificate cert =
-              CertificateCodec.getX509Certificate(certPemStr);
-          certList.add(new Certificate(cert));
-        } catch (CertificateException ex) {
-          err.println("Failed to parse certificate.");
-        }
+      for (X509Certificate certPemStr : certPemList) {
+        certList.add(new Certificate(certPemStr));
       }
       System.out.println(
           JsonUtils.toJsonStringWithDefaultPrettyPrinter(certList));
@@ -116,13 +110,21 @@ public class ListSubcommand extends ScmCertSubcommand {
     }
 
     System.out.printf("Certificate list:(BatchSize=%s, CertCount=%s)%n", count, certPemList.size());
-    printCertList(certPemList);
+    printCertList(getEncodedCertList(certPemList));
+  }
+
+  private List<String> getEncodedCertList(List<X509Certificate> certs) throws SCMSecurityException {
+    List<String> encodedCerts = new ArrayList<>();
+    for (X509Certificate cert : certs) {
+      encodedCerts.add(CertificateCodec.getPEMEncodedString(cert));
+    }
+    return encodedCerts;
   }
 
   private static class BigIntJsonSerializer extends JsonSerializer<BigInteger> {
     @Override
     public void serialize(BigInteger value, JsonGenerator jgen,
-                          SerializerProvider provider)
+        SerializerProvider provider)
         throws IOException {
       jgen.writeNumber(String.format("%d", value));
     }

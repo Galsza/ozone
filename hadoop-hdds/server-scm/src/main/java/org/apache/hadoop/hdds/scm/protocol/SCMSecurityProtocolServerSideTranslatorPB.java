@@ -17,6 +17,8 @@
 package org.apache.hadoop.hdds.scm.protocol;
 
 import java.io.IOException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.hdds.protocol.SCMSecurityProtocol;
@@ -39,6 +41,7 @@ import org.apache.hadoop.hdds.protocolPB.SCMSecurityProtocolPB;
 import org.apache.hadoop.hdds.scm.ha.RatisUtil;
 import org.apache.hadoop.hdds.scm.server.StorageContainerManager;
 import org.apache.hadoop.hdds.security.exception.SCMSecurityException;
+import org.apache.hadoop.hdds.security.x509.certificate.utils.CertificateCodec;
 import org.apache.hadoop.hdds.server.OzoneProtocolMessageDispatcher;
 import org.apache.hadoop.hdds.utils.ProtocolMessageMetrics;
 
@@ -309,17 +312,26 @@ public class SCMSecurityProtocolServerSideTranslatorPB
 
   public SCMListCertificateResponseProto listCertificate(
       SCMListCertificateRequestProto request) throws IOException {
-    List<String> certs = impl.listCertificate(request.getRole(),
+    List<X509Certificate> certs = impl.listCertificate(request.getRole(),
         request.getStartCertId(), request.getCount());
+    List<String> encodedCerts = getEncodedCertList(certs);
 
     SCMListCertificateResponseProto.Builder builder =
         SCMListCertificateResponseProto
             .newBuilder()
             .setResponseCode(SCMListCertificateResponseProto
                 .ResponseCode.success)
-            .addAllCertificates(certs);
+            .addAllCertificates(encodedCerts);
     return builder.build();
 
+  }
+
+  private List<String> getEncodedCertList(List<X509Certificate> certs) throws SCMSecurityException {
+    List<String> encodedCerts = new ArrayList<>();
+    for (X509Certificate cert : certs) {
+      encodedCerts.add(CertificateCodec.getPEMEncodedString(cert));
+    }
+    return encodedCerts;
   }
 
   public SCMGetCertResponseProto getRootCACertificate() throws IOException {
@@ -339,14 +351,15 @@ public class SCMSecurityProtocolServerSideTranslatorPB
   public SCMListCertificateResponseProto listCACertificate()
       throws IOException {
 
-    List<String> certs = impl.listCACertificate();
+    List<X509Certificate> certs = impl.listCACertificate();
+    List<String> encodedCertList = getEncodedCertList(certs);
 
     SCMListCertificateResponseProto.Builder builder =
         SCMListCertificateResponseProto
             .newBuilder()
             .setResponseCode(SCMListCertificateResponseProto
                 .ResponseCode.success)
-            .addAllCertificates(certs);
+            .addAllCertificates(encodedCertList);
     return builder.build();
 
   }

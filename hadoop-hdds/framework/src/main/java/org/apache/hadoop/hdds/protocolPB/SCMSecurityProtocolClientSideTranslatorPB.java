@@ -18,6 +18,7 @@ package org.apache.hadoop.hdds.protocolPB;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -54,6 +55,7 @@ import org.apache.hadoop.ipc.RPC;
 
 import com.google.protobuf.RpcController;
 import com.google.protobuf.ServiceException;
+import org.apache.hadoop.ozone.OzoneSecurityUtil;
 
 /**
  * This class is the client-side translator that forwards requests for
@@ -334,7 +336,7 @@ public class SCMSecurityProtocolClientSideTranslatorPB implements
    * @throws IOException
    */
   @Override
-  public List<String> listCertificate(HddsProtos.NodeType role,
+  public List<X509Certificate> listCertificate(HddsProtos.NodeType role,
       long startSerialId, int count) throws IOException {
     SCMListCertificateRequestProto protoIns = SCMListCertificateRequestProto
         .newBuilder()
@@ -342,9 +344,10 @@ public class SCMSecurityProtocolClientSideTranslatorPB implements
         .setStartCertId(startSerialId)
         .setCount(count)
         .build();
-    return submitRequest(Type.ListCertificate,
+    List<String> encodedCertList = submitRequest(Type.ListCertificate,
         builder -> builder.setListCertificateRequest(protoIns))
         .getListCertificateResponseProto().getCertificatesList();
+    return OzoneSecurityUtil.convertToX509(encodedCertList);
   }
 
   @Override
@@ -357,12 +360,13 @@ public class SCMSecurityProtocolClientSideTranslatorPB implements
   }
 
   @Override
-  public List<String> listCACertificate() throws IOException {
+  public List<X509Certificate> listCACertificate() throws IOException {
     SCMListCACertificateRequestProto proto =
         SCMListCACertificateRequestProto.getDefaultInstance();
-    return submitRequest(Type.ListCACertificate,
+    List<String> certificatesList = submitRequest(Type.ListCACertificate,
         builder -> builder.setListCACertificateRequestProto(proto))
         .getListCertificateResponseProto().getCertificatesList();
+    return OzoneSecurityUtil.convertToX509(certificatesList);
   }
 
   /**
