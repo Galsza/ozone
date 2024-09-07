@@ -57,11 +57,13 @@ public class SubCAServer extends DefaultCAServer {
       Paths.get(OzoneConsts.SCM_CA_CERT_STORAGE_DIR,
           OzoneConsts.SCM_SUB_CA_PATH).toString();
   private SCMSecurityProtocolClientSideTranslatorPB clientSideTranslatorPB;
+  private String hostName;
 
   @SuppressWarnings("parameternumber")
   public SubCAServer(String subject, String clusterID, String scmID, CertificateStore certificateStore,
       PKIProfile pkiProfile, Consumer<String> certIdCallBack, String hostName) {
-    super(subject, clusterID, scmID, certificateStore, pkiProfile, COMPONENT_NAME, null, hostName, certIdCallBack);
+    super(subject, clusterID, scmID, certificateStore, pkiProfile, COMPONENT_NAME, null, certIdCallBack);
+    this.hostName = hostName;
   }
 
   @Override
@@ -91,7 +93,7 @@ public class SubCAServer extends DefaultCAServer {
       HddsProtos.ScmNodeDetailsProto scmNodeDetailsProto =
           HddsProtos.ScmNodeDetailsProto.newBuilder()
               .setClusterId(getClusterID())
-              .setHostName(getHostName())
+              .setHostName(hostName)
               .setScmNodeId(getScmID()).build();
 
       // Get SCM sub CA cert.
@@ -160,10 +162,10 @@ public class SubCAServer extends DefaultCAServer {
    */
   public CertificateSignRequest.Builder configureCSRBuilder(KeyPair keyPair)
       throws SCMSecurityException {
-    String subject = SCM_SUB_CA_PREFIX + getHostName();
+    String subject = SCM_SUB_CA_PREFIX + hostName;
 
     LOG.info("Creating csr for SCM->hostName:{},scmId:{},clusterId:{}," +
-        "subject:{}", getHostName(), getScmID(), getClusterID(), subject);
+        "subject:{}", hostName, getScmID(), getClusterID(), subject);
 
     return new CertificateSignRequest.Builder()
         .setConfiguration(getSecurityConfig())

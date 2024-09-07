@@ -89,7 +89,7 @@ public final class HASecurityUtils {
     if (primaryscm) {
       RootCAServer rootCAServer = new RootCAServer(subject,
           scmStorageConfig.getClusterID(),
-          scmStorageConfig.getScmId(), null, new DefaultCAProfile(), scmHostname, BigInteger.ONE, saveCertIdCallBack);
+          scmStorageConfig.getScmId(), null, new DefaultCAProfile(), BigInteger.ONE, saveCertIdCallBack);
 
       rootCAServer.init(securityConfig);
       SubCAServer subCAServer = new SubCAServer(subject, scmStorageConfig.getClusterID(), scmStorageConfig.getScmId(),
@@ -136,10 +136,10 @@ public final class HASecurityUtils {
     String subject = SCM_ROOT_CA_PREFIX +
         InetAddress.getLocalHost().getHostName();
 
-    DefaultCAServer rootCAServer = new DefaultCAServer(subject,
+    DefaultCAServer rootCAServer = new RootCAServer(subject,
         scmStorageConfig.getClusterID(),
         scmStorageConfig.getScmId(), scmCertStore, pkiProfile, component,
-        rootCertId, "", null);
+        rootCertId, null);
 
     rootCAServer.init(config);
 
