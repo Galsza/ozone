@@ -547,9 +547,9 @@ public class RootCARotationManager extends StatefulService {
           String progressComponent = SCMCertificateClient.COMPONENT_NAME +
               HDDS_NEW_KEY_CERT_DIR_NAME_SUFFIX +
               HDDS_NEW_KEY_CERT_DIR_NAME_PROGRESS_SUFFIX;
-           String newSubCAProgressPath =
+          String newSubCAProgressPath =
               securityConfig.getLocation(progressComponent).toString();
-           String newSubCAPath = securityConfig.getLocation(
+          String newSubCAPath = securityConfig.getLocation(
               SCMCertificateClient.COMPONENT_NAME +
                   HDDS_NEW_KEY_CERT_DIR_NAME_SUFFIX).toString();
 
