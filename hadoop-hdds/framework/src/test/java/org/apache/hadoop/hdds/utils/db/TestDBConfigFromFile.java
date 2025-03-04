@@ -77,8 +77,7 @@ public class TestDBConfigFromFile {
               new ColumnFamilyOptions()));
     }
 
-    final DBOptions options = DBConfigFromFile.readFromFile(DB_FILE,
-        columnFamilyDescriptors);
+    final DBOptions options = DBConfigFromFile.readFromFile(Paths.get(DB_FILE));
 
     // Some Random Values Defined in the test.db.ini, we verify that we are
     // able to get values that are defined in the test.db.ini.
@@ -103,8 +102,8 @@ public class TestDBConfigFromFile {
               new ColumnFamilyOptions()));
     }
 
-    final DBOptions options = DBConfigFromFile.readFromFile("badfile.db.ini",
-        columnFamilyDescriptors);
+    final DBOptions options = DBConfigFromFile.readFromFile(Paths.get("badfile.db.ini")
+    );
 
     // This has to return a Null, since we have config defined for badfile.db
     assertNull(options);
