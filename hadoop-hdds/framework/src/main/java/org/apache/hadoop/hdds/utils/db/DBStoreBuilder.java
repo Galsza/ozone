@@ -108,6 +108,12 @@ public final class DBStoreBuilder {
   public static DBStoreBuilder newBuilder(ConfigurationSource conf, DBDefinition definition, File dbDir) {
     return newBuilder(conf, definition, dbDir.getName(), dbDir.getParentFile().toPath());
   }
+  public static DBStore createDBStore(ConfigurationSource configuration, DBDefinition definition, Path optionsPath)
+      throws RocksDatabaseException {
+    return newBuilder(configuration, definition, null, null)
+        .setOptionsPath(optionsPath)
+        .build();
+  }
 
   public static DBStoreBuilder newBuilder(ConfigurationSource conf, DBDefinition definition,
       String name, Path metadataDir) {
@@ -254,6 +260,11 @@ public final class DBStoreBuilder {
   public DBStoreBuilder setPath(Path path) {
     Preconditions.checkNotNull(path);
     dbPath = path;
+    return this;
+  }
+
+  public DBStoreBuilder setOptionsPath(Path path) {
+    optionsPath = path;
     return this;
   }
 

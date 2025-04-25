@@ -30,6 +30,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.hdds.HddsConfigKeys;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hdds.conf.OzoneConfiguration;
 import org.apache.hadoop.hdds.utils.db.DBStore;
@@ -94,6 +95,8 @@ public class ReconOmMetadataManagerImpl extends OmMetadataManagerImpl
   private void initializeNewRdbStore(File dbFile) throws IOException {
     try {
       setStore(DBStoreBuilder.newBuilder(ozoneConfiguration, OMDBDefinition.get(), dbFile).build());
+      String rdbOptions = ozoneConfiguration.get(
+          HddsConfigKeys.RECON_DB_CONFIG_PATH, HddsConfigKeys.RECON_DB_CONFIG_PATH_DEFAULT);
       LOG.info("Created OM DB handle from snapshot at {}.",
           dbFile.getAbsolutePath());
     } catch (IOException ioEx) {
