@@ -108,6 +108,13 @@ public final class DBStoreBuilder {
     return newBuilder(configuration, definition).build();
   }
 
+  public static DBStore createDBStore(ConfigurationSource configuration, DBDefinition definition, Path optionsPath)
+      throws IOException {
+    return newBuilder(configuration, definition)
+        .setOptionsPath(optionsPath)
+        .build();
+  }
+
   public static DBStoreBuilder newBuilder(ConfigurationSource configuration,
       DBDefinition definition) {
 
@@ -269,6 +276,11 @@ public final class DBStoreBuilder {
   public DBStoreBuilder setPath(Path path) {
     Preconditions.checkNotNull(path);
     dbPath = path;
+    return this;
+  }
+
+  public DBStoreBuilder setOptionsPath(Path path) {
+    optionsPath = path;
     return this;
   }
 

@@ -43,6 +43,7 @@ import com.google.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.HashSet;
@@ -60,6 +61,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.sql.DataSource;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.CommonConfigurationKeys;
+import org.apache.hadoop.hdds.HddsConfigKeys;
 import org.apache.hadoop.hdds.conf.OzoneConfiguration;
 import org.apache.hadoop.hdds.conf.ReconfigurationHandler;
 import org.apache.hadoop.hdds.protocol.DatanodeDetails;
@@ -218,7 +220,8 @@ public class ReconStorageContainerManagerFacade
 
     this.scmStorageConfig = new ReconStorageConfig(conf, reconUtils);
     this.clusterMap = new NetworkTopologyImpl(conf);
-    this.dbStore = DBStoreBuilder.createDBStore(ozoneConfiguration, ReconSCMDBDefinition.get());
+    String rdbOptions = conf.get(HddsConfigKeys.RECON_DB_CONFIG_PATH, HddsConfigKeys.RECON_DB_CONFIG_PATH_DEFAULT);
+    this.dbStore = DBStoreBuilder.createDBStore(ozoneConfiguration, ReconSCMDBDefinition.get(), Paths.get(rdbOptions));
 
     this.scmLayoutVersionManager =
         new HDDSLayoutVersionManager(scmStorageConfig.getLayoutVersion());
@@ -656,10 +659,13 @@ public class ReconStorageContainerManagerFacade
 
   private DBStore createDBAndAddSCMTablesAndCodecs(File dbFile,
       ReconSCMDBDefinition definition) throws IOException {
+    String rdbOptions = ozoneConfiguration.get(
+        HddsConfigKeys.RECON_DB_CONFIG_PATH, HddsConfigKeys.RECON_DB_CONFIG_PATH_DEFAULT);
     DBStoreBuilder dbStoreBuilder =
         DBStoreBuilder.newBuilder(ozoneConfiguration)
             .setName(dbFile.getName())
-            .setPath(dbFile.toPath().getParent());
+            .setPath(dbFile.toPath().getParent())
+            .setOptionsPath(Paths.get(rdbOptions));
     for (DBColumnFamilyDefinition columnFamily :
         definition.getColumnFamilies()) {
       dbStoreBuilder.addTable(columnFamily.getName());

@@ -24,12 +24,14 @@ import static org.apache.hadoop.ozone.recon.ReconServerConfigKeys.OZONE_RECON_OM
 import com.google.common.base.Strings;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.hdds.HddsConfigKeys;
 import org.apache.hadoop.hdds.conf.OzoneConfiguration;
 import org.apache.hadoop.hdds.utils.db.DBStore;
 import org.apache.hadoop.hdds.utils.db.DBStoreBuilder;
@@ -91,10 +93,13 @@ public class ReconOmMetadataManagerImpl extends OmMetadataManagerImpl
    */
   private void initializeNewRdbStore(File dbFile) throws IOException {
     try {
+      String rdbOptions = ozoneConfiguration.get(
+          HddsConfigKeys.RECON_DB_CONFIG_PATH, HddsConfigKeys.RECON_DB_CONFIG_PATH_DEFAULT);
       DBStoreBuilder dbStoreBuilder =
           DBStoreBuilder.newBuilder(ozoneConfiguration)
-          .setName(dbFile.getName())
-          .setPath(dbFile.toPath().getParent());
+              .setName(dbFile.getName())
+              .setPath(dbFile.toPath().getParent())
+              .setOptionsPath(Paths.get(rdbOptions));
       addOMTablesAndCodecs(dbStoreBuilder);
       dbStoreBuilder.addCodec(KeyEntityInfoProtoWrapper.class, KeyEntityInfoProtoWrapper.getCodec());
       setStore(dbStoreBuilder.build());
