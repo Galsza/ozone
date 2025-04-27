@@ -26,11 +26,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.Paths;
 import javax.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.hdds.conf.OzoneConfiguration;
-import org.apache.hadoop.hdds.HddsConfigKeys;
 import org.apache.hadoop.hdds.utils.db.DBStore;
 import org.apache.hadoop.hdds.utils.db.DBStoreBuilder;
 import org.apache.hadoop.hdds.utils.db.Table;
@@ -130,9 +128,7 @@ public class ReconDBProvider {
                                            String dbName) {
     DBStore dbStore = null;
     try {
-      String rdbOptions = configuration.get(
-          HddsConfigKeys.RECON_DB_CONFIG_PATH, HddsConfigKeys.RECON_DB_CONFIG_PATH_DEFAULT);
-      dbStore = DBStoreBuilder.createDBStore(configuration, new ReconDBDefinition(dbName), Paths.get(rdbOptions));
+      dbStore = DBStoreBuilder.createDBStore(configuration, new ReconDBDefinition(dbName));
     } catch (Exception ex) {
       LOG.error("Unable to initialize Recon container metadata store.", ex);
     }

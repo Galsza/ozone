@@ -17,7 +17,11 @@
 
 package org.apache.hadoop.ozone.recon.spi.impl;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
+import org.apache.hadoop.hdds.HddsConfigKeys;
+import org.apache.hadoop.hdds.conf.ConfigurationSource;
 import org.apache.hadoop.hdds.utils.db.DBColumnFamilyDefinition;
 import org.apache.hadoop.hdds.utils.db.DBDefinition;
 import org.apache.hadoop.hdds.utils.db.IntegerCodec;
@@ -100,5 +104,10 @@ public class ReconDBDefinition extends DBDefinition.WithMap {
   @Override
   public String getLocationConfigKey() {
     return ReconServerConfigKeys.OZONE_RECON_DB_DIR;
+  }
+
+  @Override
+  public Path getOptionsPath(ConfigurationSource config) {
+    return Paths.get(config.get(HddsConfigKeys.RECON_DB_CONFIG_PATH, HddsConfigKeys.RECON_DB_CONFIG_PATH_DEFAULT));
   }
 }

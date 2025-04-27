@@ -108,6 +108,7 @@ public final class DBStoreBuilder {
   public static DBStoreBuilder newBuilder(ConfigurationSource conf, DBDefinition definition, File dbDir) {
     return newBuilder(conf, definition, dbDir.getName(), dbDir.getParentFile().toPath());
   }
+  
   public static DBStore createDBStore(ConfigurationSource configuration, DBDefinition definition, Path optionsPath)
       throws RocksDatabaseException {
     return newBuilder(configuration, definition, null, null)
@@ -171,6 +172,7 @@ public final class DBStoreBuilder {
       metadataDir = getDBDirPath(definition, configuration).toPath();
     }
     setPath(metadataDir);
+    setOptionsPath(definition.getOptionsPath(configuration));
 
     // Add column family names and codecs.
     for (DBColumnFamilyDefinition<?, ?> columnFamily : definition.getColumnFamilies()) {

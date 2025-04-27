@@ -24,14 +24,16 @@ import static org.apache.hadoop.ozone.recon.ReconServerConfigKeys.OZONE_RECON_OM
 import com.google.common.base.Strings;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.hdds.HddsConfigKeys;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.hdds.HddsConfigKeys;
 import org.apache.hadoop.hdds.conf.OzoneConfiguration;
 import org.apache.hadoop.hdds.utils.db.DBStore;
 import org.apache.hadoop.hdds.utils.db.DBStoreBuilder;
@@ -94,9 +96,11 @@ public class ReconOmMetadataManagerImpl extends OmMetadataManagerImpl
    */
   private void initializeNewRdbStore(File dbFile) throws IOException {
     try {
-      setStore(DBStoreBuilder.newBuilder(ozoneConfiguration, OMDBDefinition.get(), dbFile).build());
-      String rdbOptions = ozoneConfiguration.get(
-          HddsConfigKeys.RECON_DB_CONFIG_PATH, HddsConfigKeys.RECON_DB_CONFIG_PATH_DEFAULT);
+      Path rdbOptions = Paths.get(ozoneConfiguration.get(
+          HddsConfigKeys.RECON_DB_CONFIG_PATH, HddsConfigKeys.RECON_DB_CONFIG_PATH_DEFAULT));
+      setStore(DBStoreBuilder.newBuilder(ozoneConfiguration, OMDBDefinition.get(), dbFile)
+          .setOptionsPath(rdbOptions)
+          .build());
       LOG.info("Created OM DB handle from snapshot at {}.",
           dbFile.getAbsolutePath());
     } catch (IOException ioEx) {
