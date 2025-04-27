@@ -175,6 +175,7 @@ public final class DBStoreBuilder {
 
     setName(definition.getName());
     setPath(Paths.get(metadataDir.getPath()));
+    setOptionsPath(definition.getOptionsPath(configuration));
 
     // Add column family names and codecs.
     for (DBColumnFamilyDefinition columnFamily :
