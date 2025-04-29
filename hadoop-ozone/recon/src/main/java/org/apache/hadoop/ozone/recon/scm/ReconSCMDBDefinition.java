@@ -17,8 +17,12 @@
 
 package org.apache.hadoop.ozone.recon.scm;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.UUID;
+import org.apache.hadoop.hdds.HddsConfigKeys;
+import org.apache.hadoop.hdds.conf.ConfigurationSource;
 import org.apache.hadoop.hdds.protocol.DatanodeDetails;
 import org.apache.hadoop.hdds.scm.metadata.SCMDBDefinition;
 import org.apache.hadoop.hdds.utils.db.Codec;
@@ -62,5 +66,10 @@ public final class ReconSCMDBDefinition extends SCMDBDefinition {
   @Override
   public String getLocationConfigKey() {
     return ReconServerConfigKeys.OZONE_RECON_SCM_DB_DIR;
+  }
+
+  @Override
+  public Path getOptionsPath(ConfigurationSource config) {
+    return Paths.get(config.get(HddsConfigKeys.SCM_DB_CONFIG_PATH, HddsConfigKeys.SCM_DB_CONFIG_PATH_DEFAULT));
   }
 }

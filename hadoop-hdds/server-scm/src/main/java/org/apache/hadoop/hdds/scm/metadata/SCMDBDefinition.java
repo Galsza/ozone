@@ -19,8 +19,12 @@ package org.apache.hadoop.hdds.scm.metadata;
 
 import com.google.protobuf.ByteString;
 import java.math.BigInteger;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.Map;
+import org.apache.hadoop.hdds.HddsConfigKeys;
+import org.apache.hadoop.hdds.conf.ConfigurationSource;
 import org.apache.hadoop.hdds.protocol.proto.StorageContainerDatanodeProtocolProtos.DeletedBlocksTransaction;
 import org.apache.hadoop.hdds.scm.ScmConfigKeys;
 import org.apache.hadoop.hdds.scm.container.ContainerID;
@@ -145,5 +149,10 @@ public class SCMDBDefinition extends DBDefinition.WithMap {
   @Override
   public String getLocationConfigKey() {
     return ScmConfigKeys.OZONE_SCM_DB_DIRS;
+  }
+
+  @Override
+  public Path getOptionsPath(ConfigurationSource config) {
+    return Paths.get(config.get(HddsConfigKeys.SCM_DB_CONFIG_PATH, HddsConfigKeys.SCM_DB_CONFIG_PATH_DEFAULT));
   }
 }

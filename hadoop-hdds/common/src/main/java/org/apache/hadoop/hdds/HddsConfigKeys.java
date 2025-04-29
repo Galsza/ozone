@@ -126,6 +126,9 @@ public final class HddsConfigKeys {
   public static final String RECON_DB_CONFIG_PATH = "recon.db.config.path";
   public static final String RECON_DB_CONFIG_PATH_DEFAULT = "";
 
+  public static final String SCM_DB_CONFIG_PATH = "scm.db.config.path";
+  public static final String SCM_DB_CONFIG_PATH_DEFAULT = "";
+
   public static final String HDDS_PROMETHEUS_ENABLED =
       "hdds.prometheus.endpoint.enabled";
 
