@@ -81,7 +81,7 @@ public class DatanodeConfiguration extends ReconfigurableConfig {
   public static final String CONTAINER_CLIENT_CACHE_STALE_THRESHOLD =
       "hdds.datanode.container.client.cache.stale.threshold";
 
-  static final boolean CHUNK_DATA_VALIDATION_CHECK_DEFAULT = false;
+  static final boolean CHUNK_DATA_VALIDATION_CHECK_DEFAULT = true;
 
   static final long PERIODIC_DISK_CHECK_INTERVAL_MINUTES_DEFAULT = 60;
 
@@ -405,7 +405,7 @@ public class DatanodeConfiguration extends ReconfigurableConfig {
   private Duration diskCheckTimeout = DISK_CHECK_TIMEOUT_DEFAULT;
 
   @Config(key = "chunk.data.validation.check",
-      defaultValue = "false",
+      defaultValue = "true",
       type = ConfigType.BOOLEAN,
       tags = { DATANODE },
       description = "Enable safety checks such as checksum validation for Ratis calls."
