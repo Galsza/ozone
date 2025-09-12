@@ -17,9 +17,13 @@
 
 package org.apache.hadoop.ozone.om.codec;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.hadoop.hdds.HddsConfigKeys;
+import org.apache.hadoop.hdds.conf.ConfigurationSource;
 import org.apache.hadoop.hdds.utils.TransactionInfo;
 import org.apache.hadoop.hdds.utils.db.DBColumnFamilyDefinition;
 import org.apache.hadoop.hdds.utils.db.DBDefinition;
@@ -359,6 +363,11 @@ public final class OMDBDefinition extends DBDefinition.WithMap {
   @Override
   public String getLocationConfigKey() {
     return OMConfigKeys.OZONE_OM_DB_DIRS;
+  }
+
+  @Override
+  public Path getOptionsPath(ConfigurationSource config) {
+    return Paths.get(config.get(HddsConfigKeys.OM_DB_CONFIG_PATH, HddsConfigKeys.OM_DB_CONFIG_PATH_DEFAULT));
   }
 
   public static List<String> getAllColumnFamilies() {

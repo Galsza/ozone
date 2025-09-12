@@ -61,6 +61,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.hdds.HddsConfigKeys;
 import org.apache.hadoop.hdds.client.BlockID;
 import org.apache.hadoop.hdds.conf.OzoneConfiguration;
 import org.apache.hadoop.hdds.utils.TableCacheMetrics;
@@ -244,6 +245,7 @@ public class OmMetadataManagerImpl implements OMMetadataManager,
     omEpoch = 0;
     int maxOpenFiles = conf.getInt(OZONE_OM_SNAPSHOT_DB_MAX_OPEN_FILES, OZONE_OM_SNAPSHOT_DB_MAX_OPEN_FILES_DEFAULT);
 
+    Path optionsPath = Paths.get(conf.get(HddsConfigKeys.OM_DB_CONFIG_PATH, HddsConfigKeys.OM_DB_CONFIG_PATH_DEFAULT));
     this.store = newDBStoreBuilder(conf, name, dir)
         .setOpenReadOnly(true)
         .disableDefaultCFAutoCompaction(true)
@@ -251,6 +253,7 @@ public class OmMetadataManagerImpl implements OMMetadataManager,
         .setEnableCompactionDag(false)
         .setCreateCheckpointDirs(false)
         .setEnableRocksDbMetrics(true)
+        .setOptionsPath(optionsPath)
         .build();
     initializeOmTables(CacheType.PARTIAL_CACHE, false);
     perfMetrics = null;
@@ -285,6 +288,8 @@ public class OmMetadataManagerImpl implements OMMetadataManager,
       final boolean enableRocksDBMetrics = conf.getBoolean(
           OZONE_OM_SNAPSHOT_ROCKSDB_METRICS_ENABLED,
           OZONE_OM_SNAPSHOT_ROCKSDB_METRICS_ENABLED_DEFAULT);
+      Path optionsPath = Paths.get(
+          conf.get(HddsConfigKeys.OM_DB_CONFIG_PATH, HddsConfigKeys.OM_DB_CONFIG_PATH_DEFAULT));
       this.store = newDBStoreBuilder(conf, dbName, metaDir)
           .setOpenReadOnly(false)
           .disableDefaultCFAutoCompaction(true)
@@ -292,6 +297,7 @@ public class OmMetadataManagerImpl implements OMMetadataManager,
           .setEnableCompactionDag(false)
           .setCreateCheckpointDirs(false)
           .setEnableRocksDbMetrics(enableRocksDBMetrics)
+          .setOptionsPath(optionsPath)
           .build();
 
       initializeOmTables(CacheType.PARTIAL_CACHE, false);
@@ -417,12 +423,15 @@ public class OmMetadataManagerImpl implements OMMetadataManager,
   }
 
   public static DBStore loadDB(OzoneConfiguration configuration, File metaDir, int maxOpenFiles) throws IOException {
+    Path optionsPath = Paths.get(
+        configuration.get(HddsConfigKeys.OM_DB_CONFIG_PATH, HddsConfigKeys.OM_DB_CONFIG_PATH_DEFAULT));
     return newDBStoreBuilder(configuration, null, metaDir)
         .setOpenReadOnly(false)
         .setEnableCompactionDag(true)
         .setCreateCheckpointDirs(true)
         .setEnableRocksDbMetrics(true)
         .setMaxNumberOfOpenFiles(maxOpenFiles)
+        .setOptionsPath(optionsPath)
         .build();
   }
 
