@@ -2770,6 +2770,14 @@
     </description>
   </property>
   <property>
+    <name>hdds.scm.db.config.path</name>
+    <value/>
+    <tag>OZONE, SCM, STORAGE</tag>
+    <description>
+      Path to an ini configuration file for RocksDB on SCM component.
+    </description>
+  </property>
+  <property>
     <name>hdds.priv.key.file.name</name>
     <value>private.pem</value>
     <tag>X509, SECURITY</tag>

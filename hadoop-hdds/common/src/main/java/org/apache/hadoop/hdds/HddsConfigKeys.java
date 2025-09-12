@@ -123,6 +123,9 @@ public final class HddsConfigKeys {
   public static final String DATANODE_DB_CONFIG_PATH = "hdds.datanode.db.config.path";
   public static final String DATANODE_DB_CONFIG_PATH_DEFAULT = "";
 
+  public static final String SCM_DB_CONFIG_PATH = "hdds.scm.db.config.path";
+  public static final String SCM_DB_CONFIG_PATH_DEFAULT = "";
+
   public static final String HDDS_PROMETHEUS_ENABLED =
       "hdds.prometheus.endpoint.enabled";
 
